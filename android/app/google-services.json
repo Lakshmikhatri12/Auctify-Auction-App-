@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "334748011560",
+    "project_id": "auctify-86815",
+    "storage_bucket": "auctify-86815.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334748011560:android:28c1762f5195741fac791d",
+        "android_client_info": {
+          "package_name": "com.example.auctify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpPeZII00dQO5Y8LpR2XKsXfoJW65E5qE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
