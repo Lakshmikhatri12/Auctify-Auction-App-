@@ -51,4 +51,14 @@ class UserService {
   Future<void> updateUserFields(String uid, Map<String, dynamic> data) async {
     await _users.doc(uid).update(data);
   }
+
+  Stream<List<UserModel>> streamAllUsers() {
+    return _users.orderBy('createdAt', descending: true).snapshots().map((
+      snapshot,
+    ) {
+      return snapshot.docs
+          .map((doc) => UserModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    });
+  }
 }

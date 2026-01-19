@@ -127,4 +127,31 @@ class NotificationHelper {
       relatedAuctionId: auctionId,
     );
   }
+
+  /// Notify all users about a new auction
+  Future<void> notifyAllUsersNewAuction({
+    required String auctionTitle,
+    required String sellerName,
+    required String auctionId,
+  }) async {
+    final usersSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .get();
+
+    for (var doc in usersSnapshot.docs) {
+      final userId = doc.id;
+
+      // Optionally skip the seller themselves
+      // if (userId == sellerId) continue;
+
+      await createNotification(
+        userId: userId,
+        type: 'new_auction',
+        title: 'New Auction Available!',
+        message:
+            'Seller $sellerName has just created a new auction: "$auctionTitle". Check it out!',
+        relatedAuctionId: auctionId,
+      );
+    }
+  }
 }

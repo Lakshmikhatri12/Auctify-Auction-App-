@@ -5,6 +5,7 @@ class UserModel {
   String profileImageUrl;
   bool isVerified; // optional, defaults to false
   DateTime createdAt;
+  String role;
 
   UserModel({
     required this.uid,
@@ -13,6 +14,7 @@ class UserModel {
     this.profileImageUrl = '',
     this.isVerified = false, // optional
     DateTime? createdAt,
+    this.role = 'user', // default role is 'user'
   }) : this.createdAt = createdAt ?? DateTime.now();
 
   Map<String, dynamic> toMap() {
@@ -23,6 +25,7 @@ class UserModel {
       'profileImageUrl': profileImageUrl,
       'isVerified': isVerified,
       'createdAt': createdAt.toIso8601String(),
+      'role': role,
     };
   }
 
@@ -34,6 +37,8 @@ class UserModel {
       profileImageUrl: map['profileImageUrl'] ?? '',
       isVerified: map['isVerified'] ?? false,
       createdAt: DateTime.parse(map['createdAt']),
+      role: map['role'] ?? 'user',
     );
   }
+  bool get isAdmin => role == 'admin'; // helper
 }

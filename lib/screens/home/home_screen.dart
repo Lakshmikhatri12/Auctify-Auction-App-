@@ -1,18 +1,22 @@
 import 'package:auctify/Notification/notification_screen.dart';
 import 'package:auctify/controllers/user_controller.dart';
+import 'package:auctify/login/firstScreen.dart';
 import 'package:auctify/models/auction_model.dart';
 import 'package:auctify/models/user_model.dart';
 
 import 'package:auctify/screens/auction/auction_detail_screen.dart';
 import 'package:auctify/screens/auction/my_auctions.dart';
+import 'package:auctify/screens/auction/place_auction.dart';
 import 'package:auctify/screens/bid_history/my_bids.dart';
 import 'package:auctify/screens/home/auction_listing.dart';
 import 'package:auctify/screens/order/order_history.dart';
+import 'package:auctify/screens/profile/profile_screen.dart';
 import 'package:auctify/screens/search/search_items.dart';
 import 'package:auctify/utils/auctionCard.dart';
 
 import 'package:auctify/utils/category_listView.dart';
 import 'package:auctify/utils/constants.dart';
+import 'package:auctify/utils/notification_Icon.dart';
 import 'package:auctify/utils/recommended_auctions.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -67,16 +71,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
           actions: [
-            IconButton(
-              icon: Icon(Icons.notifications_none),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => NotificationScreen()),
-                );
-              },
-              color: AppColors.primary,
-            ),
+            NotificationIcon(),
             const SizedBox(width: 4),
             StreamBuilder<UserModel?>(
               stream: _userController.streamCurrentUser(),
@@ -379,9 +374,36 @@ class _HomeScreenState extends State<HomeScreen>
           },
           icon: Icons.sell,
         ),
-        _textButton(text: "Sell Item", onTap: () {}, icon: Icons.sell),
-        _textButton(text: "Profile", onTap: () {}, icon: Icons.person),
-        _textButton(text: "LogOut", onTap: () {}, icon: Icons.logout),
+        _textButton(
+          text: "Sell Item",
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => PlaceAuction()));
+          },
+          icon: Icons.sell,
+        ),
+        _textButton(
+          text: "Profile",
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => ProfileScreen()));
+          },
+          icon: Icons.person,
+        ),
+        _textButton(
+          text: "LogOut",
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => Firstscreen()));
+          },
+          icon: Icons.logout,
+        ),
       ],
     );
   }

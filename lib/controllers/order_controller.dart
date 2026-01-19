@@ -14,6 +14,7 @@ class OrderController {
     required String sellerId,
     required double price,
     required Map<String, dynamic> shippingAddress,
+    required String paymentStatus, ////////////
   }) async {
     final order = OrderModel(
       orderId: orderId,
@@ -23,6 +24,7 @@ class OrderController {
       sellerId: sellerId,
       price: price,
       shippingAddress: shippingAddress,
+      paymentStatus: paymentStatus, // ✅ set here
       createdAt: Timestamp.now(),
     );
 

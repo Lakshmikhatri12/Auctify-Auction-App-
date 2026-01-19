@@ -76,6 +76,11 @@ class AuctionController {
       auctionTitle: auction.title,
       auctionId: auction.auctionId,
     );
+    await _notificationHelper.notifyAllUsersNewAuction(
+      auctionTitle: auction.title,
+      sellerName: sellerName,
+      auctionId: auction.auctionId,
+    );
     return auction;
   }
 
@@ -119,6 +124,11 @@ class AuctionController {
     await _notificationHelper.notifyNewAuction(
       sellerId: currentUserId,
       auctionTitle: auction.title,
+      auctionId: auction.auctionId,
+    );
+    await _notificationHelper.notifyAllUsersNewAuction(
+      auctionTitle: auction.title,
+      sellerName: sellerName,
       auctionId: auction.auctionId,
     );
     return auction;

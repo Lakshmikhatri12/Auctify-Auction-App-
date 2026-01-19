@@ -74,4 +74,10 @@ class AuctionService {
         .snapshots()
         .map((doc) => AuctionModel.fromFirestore(doc.data()!, doc.id));
   }
+
+  Future<AuctionModel?> getAuctionById(String auctionId) async {
+    final doc = await _firestore.collection('auctions').doc(auctionId).get();
+    if (!doc.exists) return null;
+    return AuctionModel.fromFirestore(doc.data()!, doc.id);
+  }
 }

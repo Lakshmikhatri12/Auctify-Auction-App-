@@ -600,7 +600,13 @@ class _MyAuctionsScreenState extends State<MyAuctionsScreen>
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
-        title: const Text("My Auctions"),
+        title: Text(
+          "My Auctions",
+          style: GoogleFonts.archivo(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
         bottom: TabBar(
           controller: _tabController,
           indicatorSize: TabBarIndicatorSize.tab,

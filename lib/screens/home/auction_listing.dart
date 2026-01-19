@@ -2,9 +2,9 @@ import 'package:auctify/models/auction_model.dart';
 import 'package:auctify/screens/auction/auction_detail_screen.dart';
 import 'package:auctify/utils/auctionCard.dart';
 import 'package:auctify/utils/constants.dart';
+import 'package:auctify/utils/notification_Icon.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AuctionListingScreen extends StatefulWidget {
   const AuctionListingScreen({super.key});
@@ -14,17 +14,34 @@ class AuctionListingScreen extends StatefulWidget {
 }
 
 class _AuctionListingScreenState extends State<AuctionListingScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
-        elevation: 0,
-        backgroundColor: AppColors.scaffoldBg,
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 12),
-            child: Icon(Icons.notifications_none, color: AppColors.primary),
+            child: NotificationIcon(),
           ),
         ],
       ),
@@ -41,24 +58,18 @@ class _AuctionListingScreenState extends State<AuctionListingScreen> {
                   child: Material(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () {},
-                      child: Container(
-                        height: 45,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Row(
-                          children: const [
-                            Icon(Icons.search, color: Colors.grey),
-                            SizedBox(width: 8),
-                            Text(
-                              "Search auctions",
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: InputDecoration(
+                        hintText: "Search auctions",
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        border: InputBorder.none,
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Colors.grey,
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 14,
                         ),
                       ),
                     ),
@@ -72,7 +83,9 @@ class _AuctionListingScreenState extends State<AuctionListingScreen> {
                     color: AppColors.primary,
                   ),
                   child: IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Optional: open filter modal
+                    },
                     icon: const Icon(Icons.filter_alt, color: Colors.white),
                   ),
                 ),
@@ -96,7 +109,25 @@ class _AuctionListingScreenState extends State<AuctionListingScreen> {
                     return const Center(child: Text("No auctions available"));
                   }
 
-                  final auctions = snapshot.data!.docs;
+                  // Convert Firestore docs → AuctionModel
+                  final auctions = snapshot.data!.docs
+                      .map(
+                        (doc) => AuctionModel.fromFirestore(
+                          doc.data() as Map<String, dynamic>,
+                          doc.id,
+                        ),
+                      )
+                      .where(
+                        (auction) =>
+                            auction.title.toLowerCase().contains(_searchQuery),
+                      ) // Filter by search query
+                      .toList();
+
+                  if (auctions.isEmpty) {
+                    return const Center(
+                      child: Text("No auctions match your search"),
+                    );
+                  }
 
                   return GridView.builder(
                     itemCount: auctions.length,
@@ -108,15 +139,7 @@ class _AuctionListingScreenState extends State<AuctionListingScreen> {
                           crossAxisSpacing: 10,
                         ),
                     itemBuilder: (context, index) {
-                      final doc = auctions[index];
-                      final data = doc.data() as Map<String, dynamic>;
-
-                      /// ✅ Convert Firestore → AuctionModel
-                      final auctionModel = AuctionModel.fromFirestore(
-                        data,
-                        doc.id,
-                      );
-
+                      final auctionModel = auctions[index];
                       return GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -139,16 +162,6 @@ class _AuctionListingScreenState extends State<AuctionListingScreen> {
         ),
       ),
     );
-  }
-
-  /// 🔥 FIXED + ENGLISH PRICE HANDLER
-  String _getAuctionPriceText(AuctionModel auction) {
-    if (auction.type == 'english') {
-      final price = auction.currentBid ?? auction.startingBid;
-      return '\$${price.toStringAsFixed(0)}';
-    } else {
-      return '\$${auction.startingBid.toStringAsFixed(0)}';
-    }
   }
 }
 

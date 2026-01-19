@@ -117,6 +117,7 @@
 
 import 'package:auctify/layout/layout.dart';
 import 'package:auctify/models/auction_model.dart';
+import 'package:auctify/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -139,10 +140,15 @@ class OrderSummaryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
-        title: const Text("Order Summary"),
-        backgroundColor: Colors.deepPurpleAccent,
+        title: Text(
+          "Order Summary",
+          style: GoogleFonts.archivo(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

@@ -23,4 +23,11 @@ class UserController {
       if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
     });
   }
+
+  /// Get current user
+  Future<UserModel?> getCurrentUser() async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return null;
+    return await _userService.getUserById(uid);
+  }
 }

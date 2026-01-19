@@ -943,12 +943,181 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 const SizedBox(height: 24),
 
                 // ---------------- Place Order Button ----------------
+                // SizedBox(
+                //   width: double.infinity,
+                //   height: 50,
+                //   child: ElevatedButton(
+                //     onPressed: isSold
+                //         ? null // disable if sold
+                //         : () async {
+                //             // 1️⃣ Collect shipping address
+                //             final shippingAddress = {
+                //               'name': _addressControllers['name']!.text.trim(),
+                //               'phone': _addressControllers['phone']!.text
+                //                   .trim(),
+                //               'street': _addressControllers['street']!.text
+                //                   .trim(),
+                //               'city': _addressControllers['city']!.text.trim(),
+                //               'state': _addressControllers['state']!.text
+                //                   .trim(),
+                //               'zip': _addressControllers['zip']!.text.trim(),
+                //               'country': _addressControllers['country']!.text
+                //                   .trim(),
+                //             };
+
+                //             if (shippingAddress.values.any((e) => e.isEmpty)) {
+                //               ScaffoldMessenger.of(context).showSnackBar(
+                //                 const SnackBar(
+                //                   content: Text(
+                //                     "Please fill all shipping fields",
+                //                   ),
+                //                 ),
+                //               );
+                //               return;
+                //             }
+
+                //             try {
+                //               final orderController = OrderController();
+                //               // Determine payment status
+                //               final paymentStatus =
+                //                   _selectedPaymentMethod == 'cod'
+                //                   ? 'pending'
+                //                   : 'paid';
+
+                //               // Generate unique order ID
+                //               final orderId = FirebaseFirestore.instance
+                //                   .collection('orders')
+                //                   .doc()
+                //                   .id;
+
+                //               // Fetch auction details
+                //               final auctionDoc = await FirebaseFirestore
+                //                   .instance
+                //                   .collection('auctions')
+                //                   .doc(widget.auctionId)
+                //                   .get();
+
+                //               if (!auctionDoc.exists ||
+                //                   (auctionDoc.data()?['sold'] ?? false)) {
+                //                 ScaffoldMessenger.of(context).showSnackBar(
+                //                   const SnackBar(
+                //                     content: Text("Auction already sold"),
+                //                   ),
+                //                 );
+                //                 return;
+                //               }
+
+                //               final auctionData = auctionDoc.data()!;
+                //               final sellerId = auctionData['sellerId'];
+                //               final auctionModel = AuctionModel.fromFirestore(
+                //                 auctionData,
+                //                 widget.auctionId,
+                //               );
+
+                //               final buyerId =
+                //                   FirebaseAuth.instance.currentUser!.uid;
+                //               final Timestamp now = Timestamp.now();
+
+                //               // Place order
+                //               await orderController.placeOrder(
+                //                 orderId: orderId,
+                //                 auctionId: widget.auctionId,
+                //                 auctionType: auctionModel.type,
+                //                 buyerId: buyerId,
+                //                 sellerId: sellerId,
+                //                 price:
+                //                     auctionModel.currentBid ??
+                //                     auctionModel.startingBid,
+                //                 shippingAddress: shippingAddress,
+                //                 paymentStatus: paymentStatus,
+                //               );
+
+                //               // Update auction as sold
+                //               await FirebaseFirestore.instance
+                //                   .collection('auctions')
+                //                   .doc(widget.auctionId)
+                //                   .update({
+                //                     'sold': true,
+                //                     'buyerId': buyerId,
+                //                     'orderId': orderId,
+                //                     'status': 'sold',
+                //                     'soldAt': now,
+                //                     'paymentStatus':
+                //                         _selectedPaymentMethod == 'cod'
+                //                         ? 'pending'
+                //                         : 'paid',
+                //                     'paidAt': _selectedPaymentMethod == 'cod'
+                //                         ? null
+                //                         : now,
+                //                   });
+
+                //               // Notify seller
+                //               await FirebaseFirestore.instance
+                //                   .collection('notifications')
+                //                   .add({
+                //                     'userId': sellerId,
+                //                     'type': 'order',
+                //                     'title': 'Auction Sold',
+                //                     'message':
+                //                         'Your auction "${auctionModel.title}" has been sold for \$${(auctionModel.currentBid ?? auctionModel.startingBid).toStringAsFixed(2)}!',
+                //                     'read': false,
+                //                     'createdAt': Timestamp.now(),
+                //                   });
+
+                //               // Success snackbar
+                //               ScaffoldMessenger.of(context).showSnackBar(
+                //                 const SnackBar(
+                //                   backgroundColor: AppColors.success,
+                //                   content: Text("Order placed successfully!"),
+                //                 ),
+                //               );
+
+                //               // Navigate to Order Summary
+                //               Navigator.pushReplacement(
+                //                 context,
+                //                 MaterialPageRoute(
+                //                   builder: (_) => OrderSummaryScreen(
+                //                     orderId: orderId,
+                //                     auction: auctionModel,
+                //                     shippingAddress: shippingAddress,
+                //                     paymentMethod: _selectedPaymentMethod,
+                //                     price:
+                //                         auctionModel.currentBid ??
+                //                         auctionModel.startingBid,
+                //                   ),
+                //                 ),
+                //               );
+                //             } catch (e) {
+                //               ScaffoldMessenger.of(context).showSnackBar(
+                //                 SnackBar(
+                //                   content: Text("Error: ${e.toString()}"),
+                //                 ),
+                //               );
+                //             }
+                //           },
+                //     style: ElevatedButton.styleFrom(
+                //       backgroundColor: isSold
+                //           ? Colors.grey
+                //           : Colors.deepPurpleAccent,
+                //       shape: RoundedRectangleBorder(
+                //         borderRadius: BorderRadius.circular(12),
+                //       ),
+                //     ),
+                //     child: Text(
+                //       isSold ? 'Sold Out' : 'Place Order',
+                //       style: GoogleFonts.lato(
+                //         fontSize: 16,
+                //         fontWeight: FontWeight.bold,
+                //       ),
+                //     ),
+                //   ),
+                // ),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
                     onPressed: isSold
-                        ? null // disable if sold
+                        ? null
                         : () async {
                             // 1️⃣ Collect shipping address
                             final shippingAddress = {
@@ -1013,6 +1182,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   FirebaseAuth.instance.currentUser!.uid;
                               final Timestamp now = Timestamp.now();
 
+                              // Determine payment status
+                              final paymentStatus =
+                                  _selectedPaymentMethod == 'cod'
+                                  ? 'pending'
+                                  : 'paid';
+
                               // Place order
                               await orderController.placeOrder(
                                 orderId: orderId,
@@ -1024,6 +1199,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     auctionModel.currentBid ??
                                     auctionModel.startingBid,
                                 shippingAddress: shippingAddress,
+                                paymentStatus: paymentStatus, // ✅ pass here
                               );
 
                               // Update auction as sold
@@ -1037,9 +1213,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     'status': 'sold',
                                     'soldAt': now,
                                     'paymentStatus':
-                                        _selectedPaymentMethod == 'cod'
-                                        ? 'pending'
-                                        : 'paid',
+                                        paymentStatus, // ✅ match order
                                     'paidAt': _selectedPaymentMethod == 'cod'
                                         ? null
                                         : now,
@@ -1105,6 +1279,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 24),
               ],
             ),
