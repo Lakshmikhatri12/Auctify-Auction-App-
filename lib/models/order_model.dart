@@ -11,6 +11,7 @@ class OrderModel {
   final double price;
   final String orderStatus; // placed | confirmed | shipped | delivered
   final String paymentStatus; // paid
+  final String email;
 
   final Map<String, dynamic> shippingAddress;
   final Timestamp createdAt;
@@ -24,6 +25,7 @@ class OrderModel {
     required this.price,
     this.orderStatus = 'placed',
     this.paymentStatus = 'paid',
+    required this.email,
     required this.shippingAddress,
     required this.createdAt,
   });
@@ -40,6 +42,7 @@ class OrderModel {
       price: (data['price'] as num).toDouble(),
       orderStatus: data['orderStatus'],
       paymentStatus: data['paymentStatus'],
+      email: data['email'] ?? '',
       shippingAddress: Map<String, dynamic>.from(data['shippingAddress']),
       createdAt: data['createdAt'],
     );
@@ -55,6 +58,7 @@ class OrderModel {
       'price': price,
       'orderStatus': orderStatus,
       'paymentStatus': paymentStatus,
+      'email': email,
       'shippingAddress': shippingAddress,
       'createdAt': createdAt,
     };

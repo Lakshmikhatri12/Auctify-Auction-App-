@@ -710,6 +710,8 @@ import 'package:auctify/controllers/order_controller.dart';
 import 'package:auctify/models/auction_model.dart';
 import 'package:auctify/screens/order/order_summary.dart';
 import 'package:auctify/utils/constants.dart';
+import 'package:auctify/utils/custom_appbar.dart';
+import 'package:auctify/utils/notification_Icon.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -728,6 +730,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _selectedPaymentMethod = 'card';
 
   final Map<String, TextEditingController> _addressControllers = {
+    'email': TextEditingController(),
     'name': TextEditingController(),
     'phone': TextEditingController(),
     'street': TextEditingController(),
@@ -740,8 +743,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
-      appBar: AppBar(title: const Text('Checkout'), elevation: 0),
+      appBar: CustomAppBar(
+        title: "CheckOut",
+        actions: [NotificationIcon(), SizedBox(width: 5)],
+      ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('auctions')
@@ -782,69 +787,70 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(12),
-                              image: imageUrl.isNotEmpty
-                                  ? DecorationImage(
-                                      image: NetworkImage(imageUrl),
-                                      fit: BoxFit.cover,
+                Card(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade300,
+                                borderRadius: BorderRadius.circular(12),
+                                image: imageUrl.isNotEmpty
+                                    ? DecorationImage(
+                                        image: NetworkImage(imageUrl),
+                                        fit: BoxFit.cover,
+                                      )
+                                    : null,
+                              ),
+                              child: imageUrl.isEmpty
+                                  ? const Icon(
+                                      Icons.gavel,
+                                      size: 40,
+                                      color: Colors.grey,
                                     )
                                   : null,
                             ),
-                            child: imageUrl.isEmpty
-                                ? const Icon(
-                                    Icons.gavel,
-                                    size: 40,
-                                    color: Colors.grey,
-                                  )
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  title,
-                                  style: GoogleFonts.lato(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: GoogleFonts.lato(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '\$${price.toStringAsFixed(2)}',
-                                  style: GoogleFonts.lato(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.deepPurpleAccent,
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    '\$${price.toStringAsFixed(2)}',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.deepPurpleAccent,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 24, color: Colors.grey),
-                      _priceRow('Delivery Charges', deliveryCharges),
-                      _priceRow('Tax', tax),
-                      const SizedBox(height: 12),
-                      _priceRow('Total', total, isTotal: true),
-                    ],
+                          ],
+                        ),
+                        const Divider(height: 24, color: Colors.grey),
+                        _priceRow('Delivery Charges', deliveryCharges),
+                        _priceRow('Tax', tax),
+                        const SizedBox(height: 12),
+                        _priceRow('Total', total, isTotal: true),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -858,28 +864,52 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                ..._addressControllers.entries.map((entry) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: TextField(
-                      controller: entry.value,
-                      decoration: InputDecoration(
-                        labelText: _labelForKey(entry.key),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
+
+                // Email Field (Explicitly placed first)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: TextField(
+                    controller: _addressControllers['email'],
+                    decoration: InputDecoration(
+                      labelText: 'Email Address',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      keyboardType: entry.key == 'phone' || entry.key == 'zip'
-                          ? TextInputType.number
-                          : TextInputType.text,
-                      enabled: !isSold, // disable if sold
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
                     ),
-                  );
-                }).toList(),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                ),
+
+                ..._addressControllers.entries
+                    .where((e) => e.key != 'email')
+                    .map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: TextField(
+                          controller: entry.value,
+                          decoration: InputDecoration(
+                            labelText: _labelForKey(entry.key),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 10,
+                            ),
+                          ),
+                          keyboardType:
+                              entry.key == 'phone' || entry.key == 'zip'
+                              ? TextInputType.number
+                              : TextInputType.text,
+                          enabled: !isSold, // disable if sold
+                        ),
+                      );
+                    })
+                    .toList(),
                 const SizedBox(height: 24),
 
                 // ---------------- Payment Method ----------------
@@ -1120,7 +1150,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ? null
                         : () async {
                             // 1️⃣ Collect shipping address
+
                             final shippingAddress = {
+                              'email': _addressControllers['email']!.text
+                                  .trim(),
                               'name': _addressControllers['name']!.text.trim(),
                               'phone': _addressControllers['phone']!.text
                                   .trim(),
@@ -1134,11 +1167,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   .trim(),
                             };
 
+                            // Validate shipping fields
                             if (shippingAddress.values.any((e) => e.isEmpty)) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
                                     "Please fill all shipping fields",
+                                  ),
+                                ),
+                              );
+                              return;
+                            }
+
+                            // Validate Email
+                            final emailRegex = RegExp(
+                              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
+                            );
+                            if (!emailRegex.hasMatch(
+                              shippingAddress['email']!,
+                            )) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    "Please enter a valid email address",
                                   ),
                                 ),
                               );
@@ -1199,7 +1250,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                     auctionModel.currentBid ??
                                     auctionModel.startingBid,
                                 shippingAddress: shippingAddress,
-                                paymentStatus: paymentStatus, // ✅ pass here
+                                paymentStatus: paymentStatus,
+                                email: shippingAddress['email']!,
+                                productName: auctionModel.title,
                               );
 
                               // Update auction as sold
@@ -1317,6 +1370,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   String _labelForKey(String key) {
     switch (key) {
+      case 'email':
+        return 'Email Address';
       case 'name':
         return 'Full Name';
       case 'phone':

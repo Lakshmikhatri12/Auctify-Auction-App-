@@ -503,7 +503,7 @@
 //                       style: GoogleFonts.lato(
 //                         fontSize: 16,
 //                         fontWeight: FontWeight.bold,
-//                         color: AppColors.textPrimary,
+//                         color: Theme.of(context).textTheme.titleMedium?.color,
 //                       ),
 //                     ),
 //                     const SizedBox(height: 4),
@@ -658,7 +658,7 @@
 //     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
 //     return Scaffold(
-//       backgroundColor: AppColors.scaffoldBg,
+//       // backgroundColor: AppColors.scaffoldBg, // Removed to use Theme defaults
 //       appBar: CustomAppBar(
 //         title: "My Bids",
 //         actions: const [
@@ -1324,10 +1324,11 @@
 
 import 'package:auctify/controllers/bid_controller.dart';
 import 'package:auctify/models/bid_model.dart';
-import 'package:auctify/screens/auction/auction_detail_screen.dart';
+import 'package:auctify/screens/auction/auction_detail.dart';
 import 'package:auctify/screens/checkout/checkout.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:auctify/utils/custom_appbar.dart';
+import 'package:auctify/utils/notification_Icon.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -1343,15 +1344,9 @@ class MyBidsScreen extends StatelessWidget {
     final currentUserId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
       appBar: CustomAppBar(
         title: "My Bids",
-        actions: const [
-          Icon(Icons.search, color: AppColors.primary),
-          SizedBox(width: 8),
-          Icon(Icons.notifications_outlined, color: AppColors.primary),
-          SizedBox(width: 12),
-        ],
+        actions: const [NotificationIcon(), SizedBox(width: 5)],
       ),
       body: StreamBuilder<List<BidModel>>(
         stream: _bidController.getMyBidsStream(),

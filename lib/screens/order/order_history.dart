@@ -401,10 +401,12 @@
 // }
 
 import 'package:auctify/controllers/order_controller.dart';
-import 'package:auctify/models/order_model.dart';
 import 'package:auctify/models/auction_model.dart';
+import 'package:auctify/models/order_model.dart';
 import 'package:auctify/screens/order/order_summary.dart';
 import 'package:auctify/utils/constants.dart';
+import 'package:auctify/utils/custom_appbar.dart';
+import 'package:auctify/utils/notification_Icon.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -422,9 +424,9 @@ class OrderHistoryScreen extends StatelessWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Order History'),
-          elevation: 0,
+        appBar: CustomAppBar(
+          title: "Order History",
+          actions: const [NotificationIcon(), SizedBox(width: 5)],
           bottom: TabBar(
             indicatorSize: TabBarIndicatorSize.tab,
             indicatorColor: AppColors.primary,
@@ -433,10 +435,12 @@ class OrderHistoryScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
             labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textSecondary,
+            unselectedLabelColor: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.color?.withOpacity(0.6),
             tabs: const [
-              Tab(text: 'I Placed'),
-              Tab(text: 'I Received'),
+              Tab(text: 'My Purchases'),
+              Tab(text: 'My Sales'),
             ],
           ),
         ),
@@ -463,17 +467,33 @@ class OrderHistoryScreen extends StatelessWidget {
     return StreamBuilder<List<OrderModel>>(
       stream: ordersStream,
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
+        }
 
-        final orders = snapshot.data!;
+        final orders = snapshot.data ?? [];
         if (orders.isEmpty) {
           return Center(
-            child: Text(
-              isSeller
-                  ? 'No orders received yet.'
-                  : 'You haven\'t placed any orders yet.',
-              style: GoogleFonts.lato(fontSize: 16),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isSeller ? Icons.sell_outlined : Icons.shopping_bag_outlined,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isSeller
+                      ? 'No orders received yet.'
+                      : 'You haven\'t placed any orders yet.',
+                  style: GoogleFonts.lato(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
             ),
           );
         }
@@ -485,8 +505,9 @@ class OrderHistoryScreen extends StatelessWidget {
         return FutureBuilder<Map<String, AuctionModel>>(
           future: _fetchAuctions(auctionIds),
           builder: (context, auctionSnapshot) {
-            if (!auctionSnapshot.hasData)
+            if (!auctionSnapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
+            }
 
             final auctionsMap = auctionSnapshot.data!;
 
@@ -496,14 +517,15 @@ class OrderHistoryScreen extends StatelessWidget {
               separatorBuilder: (_, __) => const SizedBox(height: 16),
               itemBuilder: (_, index) {
                 final order = orders[index];
-                final auction = auctionsMap[order.auctionId]!;
+                final auction = auctionsMap[order.auctionId];
 
-                return _buildCard(
+                if (auction == null) return const SizedBox.shrink();
+
+                return _buildPremiumOrderCard(
                   context: context,
                   order: order,
                   auction: auction,
-                  userLabel: isSeller ? 'Buyer' : 'Seller',
-                  userName: isSeller ? order.buyerId : auction.sellerName,
+                  isSeller: isSeller,
                 );
               },
             );
@@ -513,14 +535,17 @@ class OrderHistoryScreen extends StatelessWidget {
     );
   }
 
-  /// ---------------- REUSABLE CARD BUILDER ----------------
-  Widget _buildCard({
+  /// ---------------- PREMIUM ORDER CARD ----------------
+  Widget _buildPremiumOrderCard({
     required BuildContext context,
     required OrderModel order,
     required AuctionModel auction,
-    required String userLabel,
-    required String userName,
+    required bool isSeller,
   }) {
+    final theme = Theme.of(context);
+    final cardColor = theme.cardTheme.color;
+    final textColor = theme.textTheme.titleMedium?.color;
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -532,96 +557,233 @@ class OrderHistoryScreen extends StatelessWidget {
               shippingAddress: order.shippingAddress,
               paymentMethod: order.paymentStatus == 'paid' ? 'card' : 'cod',
               price: order.price,
+              isSeller: isSeller,
+              initialStatus: order.orderStatus,
             ),
           ),
         );
       },
-      child: Card(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 4,
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(12),
-              ),
-              child: auction.imageUrls.isNotEmpty
-                  ? Image.network(
-                      auction.imageUrls.first,
-                      width: 120,
-                      height: 120,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      width: 120,
-                      height: 120,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.image, size: 50),
-                    ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      auction.title,
-                      style: GoogleFonts.lato(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // --- Header: Order Status & Date ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _statusBadge(order.orderStatus),
+                  Text(
+                    _formatDate(order.createdAt),
+                    style: GoogleFonts.lato(
+                      fontSize: 12,
+                      color: Colors.grey[500],
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '$userLabel: $userName',
-                      style: GoogleFonts.lato(fontSize: 14),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Price: \$${order.price.toStringAsFixed(2)}',
-                      style: GoogleFonts.lato(
-                        fontSize: 14,
-                        color: Colors.deepPurpleAccent,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+
+            // --- Body: Image & Details ---
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Image
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: auction.imageUrls.isNotEmpty
+                        ? Image.network(
+                            auction.imageUrls.first,
+                            width: 90,
+                            height: 90,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: 90,
+                            height: 90,
+                            color: Colors.grey[200],
+                            child: Icon(
+                              Icons.image,
+                              size: 40,
+                              color: Colors.grey[400],
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 16),
+
+                  // Details
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _statusChip(order.orderStatus, Colors.green),
-                        const SizedBox(width: 6),
-                        _statusChip(order.paymentStatus, Colors.blue),
+                        Text(
+                          auction.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.lato(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          isSeller
+                              ? 'Buyer: ${order.buyerId}' // TODO: Fetch buyer name if needed
+                              : 'Seller: ${auction.sellerName}',
+                          style: GoogleFonts.lato(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '\$${order.price.toStringAsFixed(2)}',
+                          style: GoogleFonts.archivo(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
                       ],
                     ),
+                  ),
+                ],
+              ),
+            ),
+
+            // --- Footer: Seller Actions or Info ---
+            if (isSeller) ...[
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Update Status:",
+                      style: GoogleFonts.lato(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
+                    ),
+                    _buildStatusDropdown(context, order),
                   ],
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _statusChip(String text, Color color) {
+  Widget _buildStatusDropdown(BuildContext context, OrderModel order) {
+    const statuses = ['placed', 'confirmed', 'shipped', 'delivered'];
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
       decoration: BoxDecoration(
-        color: color.withAlpha(38),
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
-      child: Text(
-        text,
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: statuses.contains(order.orderStatus)
+              ? order.orderStatus
+              : null,
+          hint: Text(order.orderStatus),
+          icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+          borderRadius: BorderRadius.circular(12),
+          items: statuses.map((String status) {
+            return DropdownMenuItem<String>(
+              value: status,
+              child: _statusBadge(status, isSmall: true),
+            );
+          }).toList(),
+          onChanged: (String? newStatus) {
+            if (newStatus != null && newStatus != order.orderStatus) {
+              _orderController.updateOrderStatus(order.orderId, newStatus);
+            }
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _statusBadge(String status, {bool isSmall = false}) {
+    Color color;
+    String label = status.toUpperCase();
+
+    switch (status.toLowerCase()) {
+      case 'placed':
+        color = Colors.blue;
+        break;
+      case 'confirmed':
+        color = Colors.orange;
+        break;
+      case 'shipped':
+        color = Colors.purple;
+        break;
+      case 'delivered':
+        color = Colors.green;
+        break;
+      default:
+        color = Colors.grey;
+    }
+
+    // For dropdown (isSmall), we return just text or a smaller row
+    if (isSmall) {
+      return Text(
+        label,
         style: GoogleFonts.lato(
           fontSize: 12,
           fontWeight: FontWeight.bold,
           color: color,
         ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.lato(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: color,
+        ),
       ),
     );
+  }
+
+  String _formatDate(Timestamp timestamp) {
+    final date = timestamp.toDate();
+    return "${date.day}/${date.month}/${date.year}";
   }
 
   /// ---------------- BATCH FETCH AUCTIONS ----------------

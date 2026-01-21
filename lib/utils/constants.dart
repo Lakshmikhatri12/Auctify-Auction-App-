@@ -33,6 +33,12 @@ class AppColors {
 
   // Borders & Divider
   static const Color border = Color(0xFFE0E0E0);
+
+  // Dark Theme Colors
+  static const Color darkScaffoldBg = Color(0xFF121212); // Deep Black/Dark Grey
+  static const Color darkCardBg = Color(0xFF1E1E1E);
+  static const Color darkTextPrimary = Color(0xFFE0E0E0);
+  static const Color darkTextSecondary = Color(0xFFB0B0B0);
 }
 
 /// ===============================

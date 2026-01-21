@@ -1,15 +1,17 @@
 import 'package:auctify/Notification/notification_screen.dart';
 import 'package:auctify/controllers/user_controller.dart';
+import 'package:auctify/layout/layout.dart';
 import 'package:auctify/login/firstScreen.dart';
 import 'package:auctify/models/auction_model.dart';
 import 'package:auctify/models/user_model.dart';
+import 'package:auctify/screens/auction/auction_detail.dart';
 
-import 'package:auctify/screens/auction/auction_detail_screen.dart';
 import 'package:auctify/screens/auction/my_auctions.dart';
 import 'package:auctify/screens/auction/place_auction.dart';
 import 'package:auctify/screens/bid_history/my_bids.dart';
 import 'package:auctify/screens/home/auction_listing.dart';
 import 'package:auctify/screens/order/order_history.dart';
+import 'package:auctify/screens/chat/inbox_screen.dart';
 import 'package:auctify/screens/profile/profile_screen.dart';
 import 'package:auctify/screens/search/search_items.dart';
 import 'package:auctify/utils/auctionCard.dart';
@@ -41,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
     return SafeArea(
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: AppColors.scaffoldBg,
+        // backgroundColor: AppColors.scaffoldBg, // Removed to use Theme defaults
         drawer: Drawer(child: _drawer()),
         appBar: AppBar(
           title: Padding(
@@ -61,7 +63,7 @@ class _HomeScreenState extends State<HomeScreen>
                         style: GoogleFonts.lato(
                           fontWeight: FontWeight.w800,
                           fontSize: 18,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.titleLarge?.color,
                         ),
                       );
                     },
@@ -78,18 +80,18 @@ class _HomeScreenState extends State<HomeScreen>
               builder: (context, snapshot) {
                 final user = snapshot.data;
                 return CircleAvatar(
-                  radius: 16,
+                  radius: 20,
                   backgroundColor: AppColors.primary.withOpacity(0.1),
                   backgroundImage: user?.profileImageUrl.isNotEmpty == true
                       ? NetworkImage(user!.profileImageUrl)
                       : null,
                   child: (user == null || user.profileImageUrl.isEmpty)
-                      ? const Icon(Icons.person, size: 16)
+                      ? const Icon(Icons.person, size: 22)
                       : null,
                 );
               },
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 12),
           ],
         ),
 
@@ -106,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen>
                   children: [
                     Expanded(
                       child: Material(
-                        color: Colors.white,
+                        color: Theme.of(context).cardTheme.color,
                         borderRadius: BorderRadius.circular(4),
                         child: InkWell(
                           borderRadius: BorderRadius.circular(14),
@@ -162,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen>
                   style: GoogleFonts.archivo(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.titleMedium?.color,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -177,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen>
                       style: GoogleFonts.archivo(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).textTheme.titleMedium?.color,
                       ),
                     ),
                     GestureDetector(
@@ -265,7 +267,7 @@ class _HomeScreenState extends State<HomeScreen>
                   style: GoogleFonts.archivo(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.titleMedium?.color,
                   ),
                 ),
                 const SizedBox(height: 15),
@@ -314,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen>
                     style: GoogleFonts.lato(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).textTheme.titleLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -342,7 +344,6 @@ class _HomeScreenState extends State<HomeScreen>
             );
           },
         ),
-        _textButton(text: "Home", onTap: () {}, icon: Icons.home),
         _textButton(text: "Browse", onTap: () {}, icon: Icons.search),
         _textButton(
           text: "MyBids",
@@ -372,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen>
               context,
             ).push(MaterialPageRoute(builder: (_) => OrderHistoryScreen()));
           },
-          icon: Icons.sell,
+          icon: Icons.inventory_2,
         ),
         _textButton(
           text: "Sell Item",
@@ -425,7 +426,7 @@ class _HomeScreenState extends State<HomeScreen>
               style: GoogleFonts.archivo(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).textTheme.titleMedium?.color,
                 decoration: TextDecoration.underline,
               ),
             ),

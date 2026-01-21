@@ -1,5 +1,5 @@
 import 'package:auctify/models/auction_model.dart';
-import 'package:auctify/screens/auction/auction_detail_screen.dart';
+import 'package:auctify/screens/auction/auction_detail.dart';
 import 'package:auctify/utils/auctionCard.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:auctify/utils/notification_Icon.dart';
@@ -36,7 +36,6 @@ class _AuctionListingScreenState extends State<AuctionListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         actions: const [
           Padding(

@@ -61,4 +61,41 @@ class UserService {
           .toList();
     });
   }
+
+  // --- Wishlist Methods ---
+
+  /// Toggle item in wishlist (Add/Remove)
+  Future<void> toggleWishlist(String userId, String auctionId) async {
+    final docRef = _users.doc(userId).collection('wishlist').doc(auctionId);
+    final doc = await docRef.get();
+
+    if (doc.exists) {
+      await docRef.delete();
+    } else {
+      await docRef.set({
+        'addedAt': FieldValue.serverTimestamp(),
+        'auctionId': auctionId,
+      });
+    }
+  }
+
+  /// Check if item is in wishlist
+  Future<bool> isWishlisted(String userId, String auctionId) async {
+    final doc = await _users
+        .doc(userId)
+        .collection('wishlist')
+        .doc(auctionId)
+        .get();
+    return doc.exists;
+  }
+
+  /// Stream of wishlist auction IDs
+  Stream<List<String>> streamWishlistIds(String userId) {
+    return _users
+        .doc(userId)
+        .collection('wishlist')
+        .orderBy('addedAt', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.id).toList());
+  }
 }

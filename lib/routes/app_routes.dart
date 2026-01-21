@@ -10,7 +10,7 @@ import 'package:auctify/screens/bid_history/bid_history.dart';
 import 'package:auctify/screens/home/auction_listing.dart';
 import 'package:auctify/screens/home/home_screen.dart';
 import 'package:auctify/screens/profile/profile_screen.dart';
-import 'package:auctify/screens/watch_list.dart';
+import 'package:auctify/screens/watchlist.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {
@@ -37,7 +37,7 @@ class AppRoutes {
     signup: (_) => const SignUpPage(),
     layout: (_) => const Layout(),
     home: (_) => HomeScreen(),
-    watchList: (_) => const WatchList(),
+    watchList: (_) => WatchList(),
     placeAuction: (_) => const PlaceAuction(),
     profile: (_) => const ProfileScreen(),
     myAuctions: (_) => MyAuctionsScreen(),

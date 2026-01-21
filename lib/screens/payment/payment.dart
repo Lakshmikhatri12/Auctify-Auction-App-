@@ -379,6 +379,8 @@
 // }
 
 import 'package:auctify/controllers/payment_controller.dart';
+import 'package:auctify/utils/custom_appbar.dart';
+import 'package:auctify/utils/notification_Icon.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -484,7 +486,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      appBar: CustomAppBar(
+        title: "Payment",
+
+        actions: [NotificationIcon(), SizedBox(width: 5)],
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

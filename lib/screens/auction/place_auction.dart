@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:auctify/controllers/auction_controller.dart';
 import 'package:auctify/models/auction_model.dart';
-import 'package:auctify/screens/auction/auction_detail_screen.dart';
+import 'package:auctify/screens/auction/auction_detail.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:auctify/utils/custom_appbar.dart';
 import 'package:file_picker/file_picker.dart';
@@ -55,29 +55,11 @@ class _PlaceAuctionState extends State<PlaceAuction>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(
-          "Place Auction",
-          style: const TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        actions: const [
-          Icon(Icons.search, color: AppColors.primary),
-          SizedBox(width: 8),
-          Icon(Icons.notifications_outlined, color: AppColors.primary),
-          SizedBox(width: 12),
-        ],
-      ),
-
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           children: [
+            SizedBox(height: 50),
             TabBar(
               controller: tabController,
               labelColor: AppColors.primary,

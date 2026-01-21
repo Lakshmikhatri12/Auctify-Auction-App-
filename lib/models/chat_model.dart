@@ -1,17 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ChatModel {
   String chatId;
   String senderId;
   String receiverId;
   String message;
-  DateTime timestamp;
+  Timestamp timestamp;
 
   ChatModel({
     required this.chatId,
     required this.senderId,
     required this.receiverId,
     required this.message,
-    DateTime? timestamp,
-  }) : this.timestamp = timestamp ?? DateTime.now();
+    required this.timestamp,
+  });
 
   Map<String, dynamic> toMap() {
     return {
@@ -19,19 +21,19 @@ class ChatModel {
       'senderId': senderId,
       'receiverId': receiverId,
       'message': message,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': timestamp,
     };
   }
 
   factory ChatModel.fromMap(Map<String, dynamic> map) {
     return ChatModel(
-      chatId: map['chatId'],
-      senderId: map['senderId'],
-      receiverId: map['receiverId'],
-      message: map['message'],
-      timestamp: map['timestamp'] != null
-          ? DateTime.parse(map['timestamp'])
-          : DateTime.now(),
+      chatId: map['chatId'] ?? '',
+      senderId: map['senderId'] ?? '',
+      receiverId: map['receiverId'] ?? '',
+      message: map['message'] ?? '',
+      timestamp: map['timestamp'] is Timestamp
+          ? map['timestamp'] as Timestamp
+          : Timestamp.now(), // Fallback for loading state
     );
   }
 }

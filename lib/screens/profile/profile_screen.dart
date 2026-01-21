@@ -1,9 +1,12 @@
 import 'dart:io';
 
-import 'package:auctify/controllers/auction_controller.dart';
-import 'package:auctify/controllers/bid_controller.dart';
+import 'package:auctify/Notification/notification_screen.dart';
 import 'package:auctify/controllers/user_controller.dart';
 import 'package:auctify/models/user_model.dart';
+import 'package:auctify/screens/auction/my_auctions.dart';
+import 'package:auctify/screens/bid_history/my_bids.dart';
+import 'package:auctify/screens/profile/edit_profile.dart';
+import 'package:auctify/services/theme_service.dart'; // Import ThemeService
 import 'package:auctify/services/user_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,8 +25,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final UserController _userController = UserController();
   final UserService _userService = UserService();
-  final BidController _bidController = BidController();
-  final AuctionController _auctionController = AuctionController();
 
   Future<void> _uploadImage(UserModel user) async {
     final picker = ImagePicker();
@@ -32,310 +33,491 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (pickedFile != null) {
       final file = File(pickedFile.path);
 
-      // Upload to Firestore via UserController
-      final userController = UserController();
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Uploading image...')));
+      }
 
-      // Assuming you have a method to upload image in UserService
-      String uploadedUrl = await _userService.uploadProfileImage(file);
-
-      // Update user profile
-      await userController.updateProfile(
-        uid: user.uid,
-        profileImageUrl: uploadedUrl,
-      );
+      try {
+        String uploadedUrl = await _userService.uploadProfileImage(file);
+        await _userController.updateProfile(
+          uid: user.uid,
+          profileImageUrl: uploadedUrl,
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: AppColors.scaffoldBg,
-        body: StreamBuilder<UserModel?>(
-          stream: _userController.streamCurrentUser(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+    return Scaffold(
+      // backgroundColor: AppColors.scaffoldBg, // Removed to use Theme defaults
+      body: StreamBuilder<UserModel?>(
+        stream: _userController.streamCurrentUser(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(child: Text("User not found"));
-            }
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text("User not found"));
+          }
 
-            final user = snapshot.data!;
-            return SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          final user = snapshot.data!;
+          return CustomScrollView(
+            slivers: [
+              _buildSliverAppBar(user),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _statsGrid(user.uid),
+                      const SizedBox(height: 30),
+                      Text(
+                        "Settings",
+                        style: GoogleFonts.lato(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.titleLarge?.color,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      _settingsGroup(context, user),
+                      const SizedBox(height: 30),
+                      Text(
+                        "Account",
+                        style: GoogleFonts.lato(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).textTheme.titleLarge?.color,
+                        ),
+                      ),
+                      const SizedBox(height: 15),
+                      _accountGroup(context),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  SliverAppBar _buildSliverAppBar(UserModel user) {
+    return SliverAppBar(
+      expandedHeight: 250,
+      pinned: true,
+      backgroundColor: Theme.of(context).primaryColor,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Stack(
+          fit: StackFit.expand,
+          children: [
+            Container(color: AppColors.primary),
+            // Pattern or gradient overlay could go here
+            Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: 40),
-                  // User Avatar
-                  Center(
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: CircleAvatar(
                           radius: 50,
+                          backgroundColor: Colors.grey[200],
                           backgroundImage: user.profileImageUrl.isNotEmpty
                               ? NetworkImage(user.profileImageUrl)
                               : null,
                           child: user.profileImageUrl.isEmpty
-                              ? const Icon(Icons.person, size: 40)
+                              ? Icon(
+                                  Icons.person,
+                                  size: 50,
+                                  color: Colors.grey[400],
+                                )
                               : null,
                         ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: GestureDetector(
-                            onTap: () => _uploadImage(user),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                              padding: const EdgeInsets.all(6),
-                              child: Icon(
-                                Icons.camera_alt,
-                                color: AppColors.primary,
-                                size: 20,
-                              ),
-                            ),
+                      ),
+                      GestureDetector(
+                        onTap: () => _uploadImage(user),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: AppColors.accent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 18,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-
-                  // User Name
                   Text(
                     user.name,
                     style: GoogleFonts.lato(
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: AppColors.textPrimary,
+                      color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 4),
-
-                  // User Email
                   Text(
                     user.email,
                     style: GoogleFonts.lato(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                      color: AppColors.textSecondary,
+                      fontSize: 14,
+                      color: Colors.white70,
                     ),
                   ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                  const SizedBox(height: 20),
-
-                  // Stats Grid
-                  _statsGrid(),
-
-                  const SizedBox(height: 25),
-
-                  // Menu Items
-                  _profileMenu(
-                    icon: Icons.hourglass_bottom,
-                    title: "My Bids",
-                    iconColor: AppColors.primary,
+  void _showThemeSelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return ValueListenableBuilder<ThemeMode>(
+          valueListenable: ThemeService().themeNotifier,
+          builder: (context, currentMode, _) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Select Theme",
+                    style: GoogleFonts.lato(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  _profileMenu(
-                    icon: Icons.local_offer_outlined,
-                    title: "My Auctions",
-                    iconColor: AppColors.primary,
-                  ),
-                  const SizedBox(height: 4),
-                  _profileMenu(
-                    icon: Icons.celebration,
-                    title: "Won Auctions",
-                    iconColor: AppColors.primary,
-                  ),
-                  const SizedBox(height: 4),
-                  _profileMenu(
-                    icon: Icons.exit_to_app,
-                    title: "Logout",
-                    iconColor: AppColors.primary,
+                  const SizedBox(height: 10),
+                  ListTile(
+                    leading: const Icon(Icons.wb_sunny_outlined),
+                    title: const Text("Light Mode"),
+                    trailing: currentMode == ThemeMode.light
+                        ? const Icon(Icons.check, color: AppColors.primary)
+                        : null,
                     onTap: () {
-                      // Add logout logic here
+                      ThemeService().setTheme(ThemeMode.light);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.dark_mode_outlined),
+                    title: const Text("Dark Mode"),
+                    trailing: currentMode == ThemeMode.dark
+                        ? const Icon(Icons.check, color: AppColors.primary)
+                        : null,
+                    onTap: () {
+                      ThemeService().setTheme(ThemeMode.dark);
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.settings_system_daydream_outlined,
+                    ),
+                    title: const Text("System Default"),
+                    trailing: currentMode == ThemeMode.system
+                        ? const Icon(Icons.check, color: AppColors.primary)
+                        : null,
+                    onTap: () {
+                      ThemeService().setTheme(ThemeMode.system);
+                      Navigator.pop(context);
                     },
                   ),
                 ],
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-
-  Widget _statsGrid() {
-    final currentUserId = FirebaseAuth.instance.currentUser!.uid;
-
-    return FutureBuilder<Map<String, int>>(
-      future: _getStats(currentUserId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        final stats =
-            snapshot.data ?? {"myBids": 0, "auctions": 0, "won": 0, "sell": 0};
-
-        final List<String> titles = ["My Bids", "Auctions", "Won", "Sell"];
-        final List<int> counts = [
-          stats["myBids"]!,
-          stats["auctions"]!,
-          stats["won"]!,
-          stats["sell"]!,
-        ];
-        final List<Color> colors = [
-          AppColors.accent.withOpacity(0.8),
-          const Color(0xFF22CCB2).withOpacity(0.8),
-          AppColors.success.withOpacity(0.8),
-          AppColors.secondary.withOpacity(0.8),
-        ];
-
-        return SizedBox(
-          height: 140,
-          child: GridView.builder(
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: titles.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisExtent: 120,
-              crossAxisSpacing: 0,
-              childAspectRatio: 1,
-            ),
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: colors[index],
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        titles[index],
-                        style: GoogleFonts.lato(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        counts[index].toString(),
-                        style: GoogleFonts.lato(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
         );
       },
     );
   }
 
-  /// ListTile for menu
-  Widget _profileMenu({
-    required IconData icon,
-    required String title,
-    required Color iconColor,
-    VoidCallback? onTap,
-  }) {
+  Widget _settingsGroup(BuildContext context, UserModel user) {
     return Container(
-      height: 48,
-      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(
-          width: 1,
-          color: const Color.fromARGB(255, 209, 208, 208),
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            children: [
-              Icon(size: 24, icon, color: iconColor),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF171A1F),
-                  ),
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios, size: 16),
-            ],
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
-        ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _menuItem(
+            icon: Icons.person_outline,
+            title: "Edit Profile",
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => EditProfileScreen(user: user),
+                ),
+              );
+            },
+          ),
+          _divider(),
+          _menuItem(
+            icon: Icons.dark_mode_outlined,
+            title: "App Theme",
+            trailing: ValueListenableBuilder<ThemeMode>(
+              valueListenable: ThemeService().themeNotifier,
+              builder: (context, mode, _) {
+                String text = "System";
+                if (mode == ThemeMode.light) text = "Light";
+                if (mode == ThemeMode.dark) text = "Dark";
+                return Text(
+                  text,
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                );
+              },
+            ),
+            onTap: () => _showThemeSelector(context),
+          ),
+          _divider(),
+          _menuItem(
+            icon: Icons.notifications_outlined,
+            title: "Notifications",
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => NotificationScreen()),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
-  /// Fetch stats from Firestore
+  Widget _accountGroup(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          _menuItem(
+            icon: Icons.history,
+            title: "My Bids",
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyBidsScreen()),
+              );
+            },
+          ),
+          _divider(),
+          _menuItem(
+            icon: Icons.gavel_outlined,
+            title: "My Auctions",
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyAuctionsScreen()),
+              );
+            },
+          ),
+          _divider(),
+          _menuItem(
+            icon: Icons.logout,
+            title: "Logout",
+            isDestructive: true,
+            onTap: () async {
+              await FirebaseAuth.instance.signOut();
+              if (mounted) {
+                Navigator.of(
+                  context,
+                ).pushNamedAndRemoveUntil('/login', (route) => false);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _menuItem({
+    required IconData icon,
+    required String title,
+    VoidCallback? onTap,
+    Widget? trailing,
+    bool isDestructive = false,
+  }) {
+    return ListTile(
+      onTap: onTap,
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isDestructive
+              ? AppColors.error.withOpacity(0.1)
+              : AppColors.primary.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(
+          icon,
+          color: isDestructive ? AppColors.error : AppColors.primary,
+          size: 20,
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          fontWeight: FontWeight.w600,
+          color: isDestructive
+              ? AppColors.error
+              : Theme.of(context).textTheme.titleLarge?.color,
+        ),
+      ),
+      trailing:
+          trailing ??
+          Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
+    );
+  }
+
+  Widget _divider() {
+    return Divider(height: 1, color: Colors.grey[100], indent: 60);
+  }
+
+  Widget _statsGrid(String userId) {
+    return FutureBuilder<Map<String, int>>(
+      future: _getStats(userId),
+      builder: (context, snapshot) {
+        final stats =
+            snapshot.data ?? {"myBids": 0, "auctions": 0, "won": 0, "sell": 0};
+
+        return Row(
+          children: [
+            Expanded(
+              child: _statCard("My Bids", stats["myBids"]!, Colors.blue),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _statCard("Auctions", stats["auctions"]!, Colors.orange),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: _statCard("Won", stats["won"]!, Colors.green)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _statCard(String title, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            count.toString(),
+            style: GoogleFonts.lato(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: GoogleFonts.lato(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<Map<String, int>> _getStats(String userId) async {
     final firestore = FirebaseFirestore.instance;
-
+    // ... existing stats logic (simplified for brevity if unchanged) ...
+    // Re-implementing to ensure it works
     // My Bids
     final myBidsSnap = await firestore
         .collection('users')
         .doc(userId)
         .collection('myBids')
         .get();
-    final myBidsCount = myBidsSnap.docs.length;
 
-    // Auctions created by user
+    // Auctions
     final auctionsSnap = await firestore
         .collection('auctions')
         .where('sellerId', isEqualTo: userId)
         .get();
-    final auctionsCount = auctionsSnap.docs.length;
 
-    // Won auctions
+    // Won
     final wonSnap = await firestore
         .collection('auctions')
         .where('winnerId', isEqualTo: userId)
         .get();
-    final wonCount = wonSnap.docs.length;
 
-    // Items sold by user
+    // Sell (Sold items)
     final soldSnap = await firestore
         .collection('auctions')
         .where('sellerId', isEqualTo: userId)
         .where('status', isEqualTo: 'sold')
         .get();
-    final soldCount = soldSnap.docs.length;
 
     return {
-      "myBids": myBidsCount,
-      "auctions": auctionsCount,
-      "won": wonCount,
-      "sell": soldCount,
+      "myBids": myBidsSnap.docs.length,
+      "auctions": auctionsSnap.docs.length,
+      "won": wonSnap.docs.length,
+      "sell": soldSnap.docs.length,
     };
   }
 }

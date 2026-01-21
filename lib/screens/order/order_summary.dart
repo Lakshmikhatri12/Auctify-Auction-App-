@@ -1,132 +1,19 @@
-// import 'package:auctify/utils/constants.dart';
-// import 'package:flutter/material.dart';
-// import 'package:google_fonts/google_fonts.dart';
-
-// class OrderSummary extends StatelessWidget {
-//   const OrderSummary({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return SafeArea(
-//       child: Scaffold(
-//         backgroundColor: AppColors.scaffoldBg,
-//         appBar: AppBar(
-//           title: Text(
-//             "Order Summary",
-//             style: const TextStyle(
-//               fontSize: 18,
-//               fontWeight: FontWeight.w800,
-//               color: AppColors.textPrimary,
-//             ),
-//           ),
-//         ),
-//         body: Padding(
-//           padding: const EdgeInsets.symmetric(horizontal: 20),
-//           child: SingleChildScrollView(
-//             child: Column(
-//               mainAxisAlignment: MainAxisAlignment.start,
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 SizedBox(height: 18),
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(
-//                     horizontal: 30,
-//                     vertical: 10,
-//                   ),
-//                   child: Container(
-//                     height: 280,
-//                     decoration: BoxDecoration(
-//                       image: DecorationImage(
-//                         fit: BoxFit.fitHeight,
-//                         image: NetworkImage(
-//                           "https://cdn.pixabay.com/photo/2018/02/24/20/39/clock-3179167_1280.jpg",
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//                 SizedBox(height: 18),
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(horizontal: 20),
-//                   child: Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       Text(
-//                         "Product Name",
-//                         style: GoogleFonts.archivo(
-//                           fontSize: 18,
-//                           fontWeight: FontWeight.w700,
-//                           color: AppColors.textPrimary,
-//                         ),
-//                       ),
-//                       Row(
-//                         mainAxisSize: MainAxisSize.min,
-//                         children: [
-//                           Icon(
-//                             Icons.category,
-//                             color: AppColors.primary,
-//                             size: 24,
-//                           ),
-//                           SizedBox(width: 5),
-//                           Text(
-//                             "Category",
-//                             style: GoogleFonts.archivo(
-//                               fontSize: 16,
-//                               fontWeight: FontWeight.w700,
-//                               color: AppColors.textSecondary,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//                 SizedBox(height: 16),
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(horizontal: 20),
-//                   child: Row(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       Text(
-//                         "Price: ",
-//                         style: GoogleFonts.archivo(
-//                           fontSize: 16,
-//                           fontWeight: FontWeight.w600,
-//                           color: AppColors.textPrimary,
-//                         ),
-//                       ),
-//                       Text(
-//                         "\$350",
-//                         style: GoogleFonts.archivo(
-//                           fontSize: 16,
-//                           fontWeight: FontWeight.w900,
-//                           color: AppColors.textPrimary,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-// }
-
+import 'package:auctify/controllers/order_controller.dart';
 import 'package:auctify/layout/layout.dart';
 import 'package:auctify/models/auction_model.dart';
+import 'package:auctify/screens/order/order_history.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class OrderSummaryScreen extends StatelessWidget {
+class OrderSummaryScreen extends StatefulWidget {
   final String orderId;
   final AuctionModel auction;
   final Map<String, dynamic> shippingAddress;
   final String paymentMethod;
   final double price;
+  final bool isSeller;
+  final String initialStatus;
 
   const OrderSummaryScreen({
     super.key,
@@ -135,133 +22,169 @@ class OrderSummaryScreen extends StatelessWidget {
     required this.shippingAddress,
     required this.paymentMethod,
     required this.price,
+    this.isSeller = false,
+    this.initialStatus = 'placed',
   });
 
   @override
+  State<OrderSummaryScreen> createState() => _OrderSummaryScreenState();
+}
+
+class _OrderSummaryScreenState extends State<OrderSummaryScreen> {
+  late String _currentStatus;
+  final OrderController _orderController = OrderController();
+
+  @override
+  void initState() {
+    super.initState();
+    _currentStatus = widget.initialStatus;
+  }
+
+  void _updateStatus(String newStatus) {
+    setState(() {
+      _currentStatus = newStatus;
+    });
+    _orderController.updateOrderStatus(widget.orderId, newStatus);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final deliveryCharges = 10.0;
+    final tax = 5.0;
+    final total = widget.price + deliveryCharges + tax;
+
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            if (widget.isSeller) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const Layout()),
+                (route) => false,
+              );
+            }
+          },
+        ),
         title: Text(
-          "Order Summary",
-          style: GoogleFonts.archivo(
+          widget.isSeller ? "Order Details" : "Order Placed",
+          style: GoogleFonts.lato(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: theme.textTheme.titleLarge?.color,
           ),
         ),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===================== Auction Info =====================
-            Text(
-              "Auction Details",
-              style: GoogleFonts.lato(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            // ---------------- Success Icon (Buyer Only) ----------------
+            if (!widget.isSeller) ...[
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 60,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              Text(
+                "Thank You for Your Order!",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.lato(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: theme.textTheme.titleLarge?.color,
+                ),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Auction Image
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: Colors.grey.shade200,
-                      image: auction.imageUrls.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(auction.imageUrls.first),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                    ),
-                    child: auction.imageUrls.isEmpty
-                        ? const Icon(Icons.gavel, size: 40, color: Colors.grey)
-                        : null,
-                  ),
-                  const SizedBox(width: 16),
-                  // Auction Details
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          auction.title,
-                          style: GoogleFonts.lato(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          "Seller: ${auction.sellerName}",
-                          style: GoogleFonts.lato(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          "Auction Type: ${auction.type}",
-                          style: GoogleFonts.lato(
-                            fontSize: 14,
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          "Price: \$${price.toStringAsFixed(2)}",
-                          style: GoogleFonts.lato(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.deepPurpleAccent,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 8),
+              Text(
+                "Order #${widget.orderId}",
+                style: GoogleFonts.lato(fontSize: 14, color: Colors.grey),
               ),
-            ),
-            const SizedBox(height: 24),
+              const SizedBox(height: 30),
+            ] else ...[
+              const SizedBox(height: 20),
+            ],
 
-            // ===================== Shipping Info =====================
-            Text(
-              "Shipping Address",
-              style: GoogleFonts.lato(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            // ---------------- Timeline ----------------
+            _buildTimeline(context, _currentStatus), // Updated dynamically
+            const SizedBox(height: 30),
+
+            // ---------------- Seller Controls ----------------
+            if (widget.isSeller) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: theme.cardTheme.color,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Update Status",
+                      style: GoogleFonts.lato(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _currentStatus,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      items: ['placed', 'confirmed', 'shipped', 'delivered']
+                          .map(
+                            (status) => DropdownMenuItem(
+                              value: status,
+                              child: Text(status.toUpperCase()),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) _updateStatus(val);
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 30),
+            ],
+
+            // ---------------- Receipt Card ----------------
             Container(
-              padding: const EdgeInsets.all(16),
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                color: theme.cardTheme.color,
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
+                    blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ],
@@ -269,111 +192,388 @@ class OrderSummaryScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    shippingAddress['name'] ?? '',
-                    style: GoogleFonts.lato(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Order Details",
+                        style: GoogleFonts.lato(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: theme.textTheme.titleMedium?.color,
+                        ),
+                      ),
+                      if (widget.isSeller)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "Sale",
+                            style: GoogleFonts.lato(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    shippingAddress['phone'] ?? '',
-                    style: GoogleFonts.lato(fontSize: 14, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "${shippingAddress['street']}, ${shippingAddress['city']}, ${shippingAddress['state']}, ${shippingAddress['zip']}, ${shippingAddress['country']}",
-                    style: GoogleFonts.lato(fontSize: 14, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+                  const Divider(height: 30),
 
-            // ===================== Payment Info =====================
-            Text(
-              "Payment",
-              style: GoogleFonts.lato(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+                  // Item Info
+                  Row(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey.shade200,
+                          image: widget.auction.imageUrls.isNotEmpty
+                              ? DecorationImage(
+                                  image: NetworkImage(
+                                    widget.auction.imageUrls.first,
+                                  ),
+                                  fit: BoxFit.cover,
+                                )
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.auction.title,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lato(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: theme.textTheme.titleMedium?.color,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Sold by ${widget.auction.sellerName}",
+                              style: GoogleFonts.lato(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        "\$${widget.price.toStringAsFixed(2)}",
+                        style: GoogleFonts.lato(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: theme.textTheme.titleMedium?.color,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                  const SizedBox(height: 20),
+
+                  // Shipping Info
                   Text(
-                    "Order ID: $orderId",
-                    style: GoogleFonts.lato(fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Payment Method: ${paymentMethod.toUpperCase()}",
-                    style: GoogleFonts.lato(fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Payment Status: ${auction.paymentStatus ?? 'pending'}",
+                    "Shipping To",
                     style: GoogleFonts.lato(
                       fontSize: 14,
-                      color: auction.paymentStatus == 'paid'
-                          ? Colors.green
-                          : Colors.orange,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade600,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Order Placed: ${auction.soldAt != null ? auction.soldAt!.toDate().toLocal().toString().split('.')[0] : 'N/A'}",
-                    style: GoogleFonts.lato(fontSize: 14),
+                  const SizedBox(height: 6),
+                  Container(
+                    width: double.infinity,
+                    padding: widget.isSeller
+                        ? const EdgeInsets.all(12)
+                        : EdgeInsets.zero,
+                    decoration: widget.isSeller
+                        ? BoxDecoration(
+                            color: Colors.orange.withOpacity(0.05),
+                            border: Border.all(
+                              color: Colors.orange.withOpacity(0.3),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          )
+                        : null,
+                    child: Text(
+                      "${widget.shippingAddress['name']}\n"
+                      "${widget.shippingAddress['street']}, ${widget.shippingAddress['city']}\n"
+                      "${widget.shippingAddress['state']}, ${widget.shippingAddress['zip']}\n"
+                      "${widget.shippingAddress['country']}",
+                      style: GoogleFonts.lato(
+                        fontSize: 14,
+                        height: 1.4,
+                        color: theme.textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 30),
+
+                  // Payment Info
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Payment Method",
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      Text(
+                        widget.paymentMethod == 'cod'
+                            ? 'Cash on Delivery'
+                            : 'Paid Online',
+                        style: GoogleFonts.lato(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: theme.textTheme.bodyMedium?.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Totals
+                  _buildPriceRow("Subtotal", widget.price, theme),
+                  _buildPriceRow("Delivery", deliveryCharges, theme),
+                  _buildPriceRow("Tax", tax, theme),
+                  const Divider(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Total",
+                        style: GoogleFonts.lato(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: theme.textTheme.titleLarge?.color,
+                        ),
+                      ),
+                      Text(
+                        "\$${total.toStringAsFixed(2)}",
+                        style: GoogleFonts.lato(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurpleAccent,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 30),
 
-            // ===================== Done Button =====================
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurpleAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            // ---------------- Action Buttons (Buyer Only) ----------------
+            if (!widget.isSeller) ...[
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OrderHistoryScreen(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: theme.primaryColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 5,
+                    shadowColor: theme.primaryColor.withOpacity(0.4),
                   ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => Layout()),
-                  );
-                },
-                child: Text(
-                  "Home",
-                  style: GoogleFonts.lato(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                  child: Text(
+                    "Track Order",
+                    style: GoogleFonts.lato(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Layout()),
+                      (route) => false,
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: theme.primaryColor),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    "Continue Shopping",
+                    style: GoogleFonts.lato(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: theme.primaryColor,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: 30),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPriceRow(String label, double amount, ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.lato(fontSize: 14, color: Colors.grey.shade600),
+          ),
+          Text(
+            "\$${amount.toStringAsFixed(2)}",
+            style: GoogleFonts.lato(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: theme.textTheme.bodyMedium?.color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeline(BuildContext context, String status) {
+    final theme = Theme.of(context);
+
+    // Status Logic
+    int currentStep = 0;
+    switch (status.toLowerCase()) {
+      case 'placed':
+        currentStep = 1;
+        break;
+      case 'confirmed':
+        currentStep = 2;
+        break;
+      case 'shipped':
+        currentStep = 3;
+        break;
+      case 'delivered':
+        currentStep = 4;
+        break;
+      default:
+        currentStep = 1;
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _buildTimelineStep(
+          context,
+          "Placed",
+          currentStep >= 1,
+          currentStep > 1,
+        ),
+        _buildTimelineLine(context, currentStep > 1),
+        _buildTimelineStep(
+          context,
+          "Confirmed",
+          currentStep >= 2,
+          currentStep > 2,
+        ),
+        _buildTimelineLine(context, currentStep > 2),
+        _buildTimelineStep(
+          context,
+          "Shipped",
+          currentStep >= 3,
+          currentStep > 3,
+        ),
+        _buildTimelineLine(context, currentStep > 3),
+        _buildTimelineStep(
+          context,
+          "Delivered",
+          currentStep >= 4,
+          currentStep > 4,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimelineStep(
+    BuildContext context,
+    String label,
+    bool isActive,
+    bool isCompleted,
+  ) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: isActive
+                ? theme.primaryColor
+                : (isCompleted ? theme.primaryColor : Colors.grey.shade300),
+            shape: BoxShape.circle,
+            border: isActive
+                ? Border.all(color: theme.primaryColor, width: 2)
+                : null,
+          ),
+          child: Center(
+            child: isCompleted
+                ? const Icon(Icons.check, size: 16, color: Colors.white)
+                : const SizedBox(),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: GoogleFonts.lato(
+            fontSize: 10,
+            color: isActive ? theme.primaryColor : Colors.grey,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimelineLine(BuildContext context, bool isActive) {
+    return Container(
+      width: 30,
+      height: 2,
+      color: isActive ? Theme.of(context).primaryColor : Colors.grey.shade300,
+      margin: const EdgeInsets.symmetric(
+        horizontal: 4,
+        vertical: 15,
+      ).copyWith(bottom: 25), // Adjust based on text height
     );
   }
 }

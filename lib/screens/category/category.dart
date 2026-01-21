@@ -230,9 +230,11 @@
 
 import 'package:auctify/controllers/auction_controller.dart';
 import 'package:auctify/models/auction_model.dart';
-import 'package:auctify/screens/auction/auction_detail_screen.dart';
+import 'package:auctify/screens/auction/auction_detail.dart';
+
 import 'package:auctify/utils/auctionCard.dart';
 import 'package:auctify/utils/constants.dart';
+import 'package:auctify/utils/notification_Icon.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -265,15 +267,15 @@ class _CategoryScreenState extends State<CategoryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
       appBar: AppBar(
         title: Text(
           widget.category,
           style: GoogleFonts.archivo(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.titleLarge?.color,
           ),
         ),
+        actions: [NotificationIcon(), SizedBox(width: 5)],
         bottom: TabBar(
           indicatorSize: TabBarIndicatorSize.tab,
           indicatorColor: AppColors.primary,
@@ -282,7 +284,7 @@ class _CategoryScreenState extends State<CategoryScreen>
             fontWeight: FontWeight.bold,
           ),
           labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
+          unselectedLabelColor: Theme.of(context).textTheme.titleMedium?.color,
           controller: _tabController,
           tabs: const [
             Tab(text: "All"),

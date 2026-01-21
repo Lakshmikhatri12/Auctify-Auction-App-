@@ -1,193 +1,4 @@
-// import 'package:flutter/material.dart';
-// import 'package:google_fonts/google_fonts.dart';
-// import '../models/auction_model.dart';
-// import '../utils/constants.dart';
-
-// class AuctionCard extends StatelessWidget {
-//   final AuctionModel auctionModel;
-//   final double width;
-//   final VoidCallback? onTap;
-//   final String? statusLabel; // Optional status label like "SOLD" or "ENDED"
-
-//   const AuctionCard({
-//     super.key,
-//     required this.auctionModel,
-//     this.width = double.infinity,
-//     this.onTap,
-//     this.statusLabel,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // Determine if auction is inactive (sold or ended)
-//     bool isInactive = auctionModel.status != 'active';
-
-//     return Stack(
-//       children: [
-//         GestureDetector(
-//           onTap: onTap,
-//           child: Container(
-//             width: width,
-//             decoration: BoxDecoration(
-//               color: AppColors.cardBg,
-//               border: Border.all(
-//                 width: 1,
-//                 color: const Color.fromARGB(255, 222, 223, 224),
-//               ),
-//             ),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 /// IMAGE
-//                 Container(
-//                   height: 160,
-//                   width: double.infinity,
-//                   decoration: BoxDecoration(
-//                     image: DecorationImage(
-//                       fit: BoxFit.cover,
-//                       colorFilter: isInactive
-//                           ? ColorFilter.mode(
-//                               Colors.grey.withOpacity(0.6),
-//                               BlendMode.saturation,
-//                             )
-//                           : null,
-//                       image: NetworkImage(
-//                         auctionModel.imageUrls.isNotEmpty
-//                             ? auctionModel.imageUrls.first
-//                             : 'https://via.placeholder.com/150',
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-
-//                 const SizedBox(height: 8),
-
-//                 /// TITLE
-//                 Padding(
-//                   padding: const EdgeInsets.only(left: 4),
-//                   child: Text(
-//                     auctionModel.title,
-//                     maxLines: 1,
-//                     overflow: TextOverflow.ellipsis,
-//                     style: GoogleFonts.archivo(
-//                       fontSize: 14,
-//                       fontWeight: FontWeight.w800,
-//                       color: isInactive ? Colors.grey : AppColors.textPrimary,
-//                     ),
-//                   ),
-//                 ),
-
-//                 /// PRICE (FIXED + ENGLISH)
-//                 Padding(
-//                   padding: const EdgeInsets.only(left: 4),
-//                   child: Text(
-//                     _getAuctionPriceText(auctionModel),
-//                     maxLines: 1,
-//                     overflow: TextOverflow.ellipsis,
-//                     style: GoogleFonts.inter(
-//                       fontWeight: FontWeight.w800,
-//                       fontSize: 12,
-//                       color: isInactive ? Colors.grey : Colors.blue,
-//                     ),
-//                   ),
-//                 ),
-//                 const SizedBox(height: 4),
-
-//                 /// DESCRIPTION
-//                 Padding(
-//                   padding: const EdgeInsets.only(left: 4),
-//                   child: Container(
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(4),
-//                       color: AppColors.secondary.withOpacity(0.16),
-//                     ),
-//                     child: Padding(
-//                       padding: const EdgeInsets.symmetric(
-//                         vertical: 4,
-//                         horizontal: 8,
-//                       ),
-//                       child: Text(
-//                         "Seller: ${auctionModel.sellerName}",
-//                         maxLines: 1,
-//                         overflow: TextOverflow.ellipsis,
-//                         style: GoogleFonts.inter(
-//                           fontSize: 12,
-//                           color: AppColors.textSecondary,
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-
-//                 const SizedBox(height: 6),
-
-//                 /// BUTTON
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(
-//                     horizontal: 4,
-//                     vertical: 4,
-//                   ),
-//                   child: Container(
-//                     width: double.infinity,
-//                     decoration: BoxDecoration(
-//                       borderRadius: BorderRadius.circular(4),
-//                       color: AppColors.primary,
-//                     ),
-//                     child: const Center(
-//                       child: Padding(
-//                         padding: EdgeInsets.symmetric(vertical: 6),
-//                         child: Text(
-//                           "View",
-//                           style: TextStyle(
-//                             fontSize: 14,
-//                             color: Colors.white,
-//                             fontWeight: FontWeight.w800,
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-
-//         /// OPTIONAL STATUS LABEL (e.g., SOLD / ENDED)
-//         if (isInactive && statusLabel != null)
-//           Positioned(
-//             top: 8,
-//             right: 8,
-//             child: Container(
-//               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-//               decoration: BoxDecoration(
-//                 color: Colors.black.withOpacity(0.7),
-//                 borderRadius: BorderRadius.circular(12),
-//               ),
-//               child: Text(
-//                 statusLabel!,
-//                 style: const TextStyle(
-//                   color: Colors.white,
-//                   fontSize: 12,
-//                   fontWeight: FontWeight.bold,
-//                 ),
-//               ),
-//             ),
-//           ),
-//       ],
-//     );
-//   }
-
-//   String _getAuctionPriceText(AuctionModel auction) {
-//     if (auction.type == 'english') {
-//       final price = auction.currentBid ?? auction.startingBid;
-//       return 'Price:  \$${price.toStringAsFixed(0)}';
-//     } else {
-//       return 'Price:  \$${auction.startingBid.toStringAsFixed(0)}';
-//     }
-//   }
-// }
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/auction_model.dart';
@@ -212,170 +23,225 @@ class AuctionCard extends StatelessWidget {
 
     // Compute status label
     String statusLabel = '';
+    Color statusColor = Colors.transparent;
+
     if (auctionModel.status == 'sold') {
       statusLabel = 'SOLD';
+      statusColor = AppColors.error;
     } else if (auctionModel.status == 'ended') {
       statusLabel = 'ENDED';
+      statusColor = AppColors.warning;
     }
 
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: width,
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              border: Border.all(
-                width: 1,
-                color: const Color.fromARGB(255, 222, 223, 224),
-              ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: width,
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color,
+          borderRadius: BorderRadius.circular(AppSizes.radiusMD),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+          border: Border.all(
+            color: Theme.of(context).dividerColor.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// IMAGE SECTION
+            Stack(
               children: [
-                /// IMAGE
-                Container(
-                  height: 160,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      fit: BoxFit.cover,
-                      image: NetworkImage(
-                        auctionModel.imageUrls.isNotEmpty
-                            ? auctionModel.imageUrls.first
-                            : 'https://via.placeholder.com/150',
-                      ),
-                    ),
+                ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(AppSizes.radiusMD),
+                    topRight: Radius.circular(AppSizes.radiusMD),
                   ),
-                ),
-
-                const SizedBox(height: 8),
-
-                /// TITLE
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Text(
-                    auctionModel.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.archivo(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-
-                /// PRICE (FIXED + ENGLISH)
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Text(
-                    _getAuctionPriceText(auctionModel),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-
-                /// DESCRIPTION
-                Padding(
-                  padding: const EdgeInsets.only(left: 4),
                   child: Container(
+                    height: 150,
+                    width: double.infinity,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: AppColors.secondary.withOpacity(0.16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 4,
-                        horizontal: 8,
-                      ),
-                      child: Text(
-                        "Seller: ${auctionModel.sellerName}",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
+                      color: Colors.grey[100],
+                      image: DecorationImage(
+                        fit: BoxFit.cover,
+                        colorFilter: isInactive
+                            ? ColorFilter.mode(
+                                Colors.grey.withOpacity(0.8),
+                                BlendMode.saturation,
+                              )
+                            : null,
+                        image: NetworkImage(
+                          auctionModel.imageUrls.isNotEmpty
+                              ? auctionModel.imageUrls.first
+                              : 'https://via.placeholder.com/150',
                         ),
                       ),
                     ),
                   ),
                 ),
 
-                const SizedBox(height: 6),
-
-                /// BUTTON
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 4,
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: AppColors.primary,
+                // Status Badge (Sold/Ended)
+                if (statusLabel.isNotEmpty)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSM),
+                        boxShadow: [
+                          BoxShadow(
+                            color: statusColor.withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        statusLabel,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                    child: const Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 6),
+                  ),
+              ],
+            ),
+
+            /// CONTENT SECTION
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title
+                  Text(
+                    auctionModel.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      // Using a modern clean font
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      height: 1.3,
+                      color: isInactive
+                          ? AppColors.textLight
+                          : Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Price
+                  Text(
+                    _getAuctionPriceText(auctionModel),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isInactive
+                          ? AppColors.textLight
+                          : AppColors.primary,
+                    ),
+                  ),
+
+                  const SizedBox(height: 12),
+                  const Divider(height: 1, color: AppColors.border),
+                  const SizedBox(height: 8),
+
+                  // Seller Info Row
+                  Row(
+                    children: [
+                      // FutureBuilder to fetch profile image
+                      FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(auctionModel.sellerId)
+                            .get(),
+                        builder: (context, snapshot) {
+                          String? profileImageUrl;
+                          if (snapshot.hasData &&
+                              snapshot.data != null &&
+                              snapshot.data!.exists) {
+                            final data =
+                                snapshot.data!.data() as Map<String, dynamic>;
+                            profileImageUrl = data['profileImageUrl'];
+                          }
+
+                          if (profileImageUrl != null &&
+                              profileImageUrl.isNotEmpty) {
+                            return CircleAvatar(
+                              radius: 10,
+                              backgroundImage: NetworkImage(profileImageUrl),
+                              backgroundColor: AppColors.secondary.withOpacity(
+                                0.2,
+                              ),
+                            );
+                          } else {
+                            // Fallback to initials
+                            return CircleAvatar(
+                              radius: 10,
+                              backgroundColor: AppColors.secondary.withOpacity(
+                                0.2,
+                              ),
+                              child: Text(
+                                auctionModel.sellerName.isNotEmpty
+                                    ? auctionModel.sellerName[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
                         child: Text(
-                          "View",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
+                          auctionModel.sellerName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
-
-        /// STATUS CHIP (SOLD / ENDED)
-        if (isInactive && statusLabel.isNotEmpty)
-          Positioned(
-            top: 8,
-            left: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 6),
-              decoration: BoxDecoration(
-                color: statusLabel == 'SOLD'
-                    ? AppColors.error
-                    : AppColors.warning, // Red for sold, orange for ended
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                statusLabel,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
 
   String _getAuctionPriceText(AuctionModel auction) {
     if (auction.type == 'english') {
       final price = auction.currentBid ?? auction.startingBid;
-      return 'Price:  \$${price.toStringAsFixed(0)}';
+      return '\$${price.toStringAsFixed(0)}';
     } else {
-      return 'Price:  \$${auction.startingBid.toStringAsFixed(0)}';
+      return '\$${auction.startingBid.toStringAsFixed(0)}';
     }
   }
 }

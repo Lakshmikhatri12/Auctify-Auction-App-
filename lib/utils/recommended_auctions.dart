@@ -61,7 +61,7 @@ import 'dart:async';
 
 import 'package:auctify/controllers/auction_controller.dart';
 import 'package:auctify/models/auction_model.dart';
-import 'package:auctify/screens/auction/auction_detail_screen.dart';
+import 'package:auctify/screens/auction/auction_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

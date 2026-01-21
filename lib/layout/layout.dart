@@ -1,7 +1,8 @@
 import 'package:auctify/screens/auction/place_auction.dart';
+import 'package:auctify/screens/chat/inbox_screen.dart';
 import 'package:auctify/screens/home/home_screen.dart';
 import 'package:auctify/screens/profile/profile_screen.dart';
-import 'package:auctify/screens/watch_list.dart';
+import 'package:auctify/screens/watchlist.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:flutter/material.dart';
 
@@ -19,6 +20,7 @@ class _LayoutState extends State<Layout> {
     HomeScreen(),
     WatchList(),
     PlaceAuction(),
+    InboxScreen(),
     ProfileScreen(),
   ];
 
@@ -77,6 +79,7 @@ class _LayoutState extends State<Layout> {
               icon: Icon(Icons.image_outlined),
               label: "Sell",
             ),
+            BottomNavigationBarItem(icon: Icon(Icons.message), label: "Inbox"),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_3_outlined),
               label: "Profile",

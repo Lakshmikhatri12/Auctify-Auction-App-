@@ -292,7 +292,7 @@
 //   }
 // }
 
-import 'package:auctify/screens/auction/auction_detail_screen.dart';
+import 'package:auctify/screens/auction/auction_detail.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -373,7 +373,7 @@ class _MyAuctionsScreenState extends State<MyAuctionsScreen>
         return Container(
           margin: const EdgeInsets.only(bottom: 14),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -598,13 +598,13 @@ class _MyAuctionsScreenState extends State<MyAuctionsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg,
+      // backgroundColor: AppColors.scaffoldBg, // Removed to use Theme defaults
       appBar: AppBar(
         title: Text(
           "My Auctions",
           style: GoogleFonts.archivo(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.titleLarge?.color,
           ),
         ),
         bottom: TabBar(
@@ -616,7 +616,9 @@ class _MyAuctionsScreenState extends State<MyAuctionsScreen>
             fontWeight: FontWeight.bold,
           ),
           labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textSecondary,
+          unselectedLabelColor: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.color?.withOpacity(0.6),
           tabs: const [
             Tab(text: "Active"),
             Tab(text: "Sold"),
