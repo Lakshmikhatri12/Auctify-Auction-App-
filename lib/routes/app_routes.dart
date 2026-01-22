@@ -11,11 +11,13 @@ import 'package:auctify/screens/home/auction_listing.dart';
 import 'package:auctify/screens/home/home_screen.dart';
 import 'package:auctify/screens/profile/profile_screen.dart';
 import 'package:auctify/screens/watchlist.dart';
+import 'package:auctify/splashScreen.dart';
 import 'package:flutter/material.dart';
 
 class AppRoutes {
   // Route names
   static const fScreen = '/f_screen';
+  static const SplashScreen = '/splash';
   static const login = '/login';
   static const signup = '/signup';
   static const layout = '/layout';

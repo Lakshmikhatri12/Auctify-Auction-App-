@@ -1,4 +1,3 @@
-import 'package:auctify/Notification/notification_screen.dart';
 import 'package:auctify/models/auction_model.dart';
 import 'package:auctify/screens/auction/auction_detail.dart';
 import 'package:auctify/utils/auctionCard.dart';
@@ -6,7 +5,6 @@ import 'package:auctify/utils/constants.dart';
 import 'package:auctify/utils/custom_appbar.dart';
 import 'package:auctify/utils/notification_Icon.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 

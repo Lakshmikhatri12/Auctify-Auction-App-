@@ -293,6 +293,7 @@
 // }
 
 import 'package:auctify/screens/auction/auction_detail.dart';
+import 'package:auctify/screens/auction/edit_auction_screen.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -468,14 +469,21 @@ class _MyAuctionsScreenState extends State<MyAuctionsScreen>
                         const Spacer(),
                         Row(
                           children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.blue.withOpacity(0.1),
-                              child: IconButton(
-                                onPressed: () {},
-                                icon: Icon(Icons.edit, color: Colors.blue),
+                            if (currentData['status'] == 'active')
+                              Padding(
+                                padding: const EdgeInsets.only(right: 5),
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.blue.withOpacity(0.1),
+                                  child: IconButton(
+                                    onPressed: () =>
+                                        _handleEditAuction(doc.id, currentData),
+                                    icon: const Icon(
+                                      Icons.edit,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 5),
                             _deleteOrViewButton(doc, currentData),
                           ],
                         ),
@@ -541,6 +549,15 @@ class _MyAuctionsScreenState extends State<MyAuctionsScreen>
         );
       },
       child: const Text("View"),
+    );
+  }
+
+  void _handleEditAuction(String docId, Map<String, dynamic> data) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditAuctionScreen(auctionId: docId, data: data),
+      ),
     );
   }
 

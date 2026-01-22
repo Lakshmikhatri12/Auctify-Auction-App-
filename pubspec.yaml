@@ -51,6 +51,7 @@ dependencies:
   google_sign_in: ^6.2.1
   badges: ^3.1.2
   curved_navigation_bar: ^1.0.3
+  mailer: ^6.6.0
 
 dev_dependencies:
   flutter_test:

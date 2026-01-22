@@ -1,4 +1,3 @@
-import 'package:auctify/Notification/notification_screen.dart';
 import 'package:auctify/controllers/user_controller.dart';
 import 'package:auctify/layout/layout.dart';
 import 'package:auctify/login/firstScreen.dart';

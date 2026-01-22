@@ -112,8 +112,47 @@ class OrderController {
   }
 
   /// Update order status
+  // Future<void> updateOrderStatus(String orderId, String status) async {
+  //   await _orderService.updateOrderFields(orderId, {'orderStatus': status});
+  // }
+  /// Update order status
   Future<void> updateOrderStatus(String orderId, String status) async {
+    // 1️⃣ Update the order status
     await _orderService.updateOrderFields(orderId, {'orderStatus': status});
+
+    // 2️⃣ Only mark auction as sold when status is "confirmed"
+    if (status.toLowerCase() == 'confirmed') {
+      final orderSnapshot = await FirebaseFirestore.instance
+          .collection('orders')
+          .doc(orderId)
+          .get();
+
+      if (!orderSnapshot.exists) return;
+
+      final orderData = orderSnapshot.data()!;
+      final auctionId = orderData['auctionId'] as String;
+      final buyerId = orderData['buyerId'] as String;
+
+      // Fetch the auction to check if it’s still active
+      final auctionSnapshot = await FirebaseFirestore.instance
+          .collection('auctions')
+          .doc(auctionId)
+          .get();
+
+      if (auctionSnapshot.exists) {
+        final auctionData = auctionSnapshot.data()!;
+        if ((auctionData['status'] ?? 'active') == 'active') {
+          await FirebaseFirestore.instance
+              .collection('auctions')
+              .doc(auctionId)
+              .update({
+                'status': 'sold',
+                'soldAt': FieldValue.serverTimestamp(),
+                'winnerId': buyerId,
+              });
+        }
+      }
+    }
   }
 
   /// Mark payment status

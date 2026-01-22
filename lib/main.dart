@@ -1,4 +1,4 @@
-import 'package:auctify/routes/app_routes.dart';
+import 'package:auctify/splashScreen.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -93,10 +93,10 @@ class MyApp extends StatelessWidget {
                   displayColor: AppColors.darkTextPrimary,
                 ),
           ),
-
-          initialRoute: AppRoutes.fScreen,
-          routes: AppRoutes.routes,
-          onGenerateRoute: AppRoutes.onGenerateRoute,
+          home: SplashScreen(),
+          // initialRoute: AppRoutes.SplashScreen,
+          // routes: AppRoutes.routes,
+          // onGenerateRoute: AppRoutes.onGenerateRoute,
         );
       },
     );

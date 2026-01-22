@@ -1,4 +1,4 @@
-import 'package:auctify/Notification/notification_screen.dart';
+import 'package:auctify/screens/Notification/notification_screen.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;

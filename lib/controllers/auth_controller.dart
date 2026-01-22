@@ -1,8 +1,7 @@
 import 'dart:io';
 
-import 'package:auctify/admin.dart/adminDeshBoard.dart';
-import 'package:auctify/layout/admin_layout.dart';
 import 'package:auctify/layout/layout.dart';
+import 'package:auctify/login/login_page.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -30,19 +29,19 @@ class AuthController {
   }
 
   /// 🔹 NAVIGATE BASED ON ROLE
-  void _navigateBasedOnRole(BuildContext context, UserModel user) {
-    if (user.role == 'admin') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => AdminDashboardScreen()),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => Layout()),
-      );
-    }
-  }
+  // void _navigateBasedOnRole(BuildContext context, UserModel user) {
+  //   if (user.role == 'admin') {
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => AdminDashboardScreen()),
+  //     );
+  //   } else {
+  //     Navigator.pushReplacement(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => Layout()),
+  //     );
+  //   }
+  // }
 
   /// 🔹 SIGN UP
   Future<void> signUp({
@@ -151,12 +150,13 @@ class AuthController {
       }
 
       // 3️⃣ Check role
-      if (doc.role == 'admin') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => AdminLayout()),
-        );
-      } else {
+      // if (doc.role == 'admin') {
+      //   Navigator.pushReplacement(
+      //     context,
+      //     MaterialPageRoute(builder: (_) => AdminLayout()),
+      //   );
+      // } else
+      {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => Layout()),
@@ -277,6 +277,33 @@ class AuthController {
         'An error occurred: $e',
         backgroundColor: Colors.red,
       );
+    }
+  }
+
+  /// 🔹 LOGOUT
+  Future<void> logout(BuildContext context) async {
+    try {
+      // Sign out from Google (if logged in)
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
+
+      // Sign out from Firebase
+      await _auth.signOut();
+
+      _showSnackBar(
+        context,
+        'Logged out successfully',
+        backgroundColor: Colors.green,
+      );
+
+      // Navigate to Login Screen & clear stack
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
+    } catch (e) {
+      _showSnackBar(context, 'Logout failed: $e', backgroundColor: Colors.red);
     }
   }
 }

@@ -4,7 +4,6 @@ import 'package:auctify/services/auction_service.dart';
 import 'package:auctify/services/user_service.dart';
 import 'package:auctify/utils/auctionCard.dart';
 import 'package:auctify/utils/constants.dart';
-import 'package:auctify/utils/custom_appbar.dart';
 import 'package:auctify/utils/notification_Icon.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -22,11 +21,15 @@ class WatchList extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           centerTitle: true,
-
-          actions: const [
-            Icon(Icons.notifications_outlined, color: AppColors.primary),
-            SizedBox(width: 12),
-          ],
+          title: Text(
+            "WatchList",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
+          ),
+          actions: const [NotificationIcon(), SizedBox(width: 12)],
         ),
         // backgroundColor: AppColors.scaffoldBg, // Removed to use Theme defaults
         body: StreamBuilder<List<String>>(

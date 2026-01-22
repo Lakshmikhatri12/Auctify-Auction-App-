@@ -709,13 +709,14 @@
 import 'package:auctify/controllers/order_controller.dart';
 import 'package:auctify/models/auction_model.dart';
 import 'package:auctify/screens/order/order_summary.dart';
-import 'package:auctify/utils/constants.dart';
 import 'package:auctify/utils/custom_appbar.dart';
 import 'package:auctify/utils/notification_Icon.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final String auctionId;
@@ -739,6 +740,44 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     'zip': TextEditingController(),
     'country': TextEditingController(),
   };
+
+  Future<void> sendOrderEmail({
+    required String recipientEmail,
+    required String buyerName,
+    required String productName,
+    required double price,
+  }) async {
+    // ⚠️ Use Gmail App Password if 2FA is enabled
+    final smtpServer = gmail(
+      'lakshmipooja724@gmail.com',
+      'ueyv loxn gzhn jeom',
+    );
+
+    final message = Message()
+      ..from = Address('your_email@gmail.com', 'Auctify')
+      ..recipients.add(recipientEmail)
+      ..subject = 'Your Order Confirmation for $productName'
+      ..text =
+          '''
+Hi $buyerName,
+
+Thank you for your purchase!
+
+Product: $productName
+Price: \$${price.toStringAsFixed(2)}
+
+Your order will be processed shortly.
+
+- Auctify Team
+  ''';
+
+    try {
+      final sendReport = await send(message, smtpServer);
+      print('Message sent: ' + sendReport.toString());
+    } on MailerException catch (e) {
+      print('Message not sent. \n${e.toString()}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -768,10 +807,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           final double price = (auctionData['currentBid'] ?? 0).toDouble();
           final List images = auctionData['imageUrls'] ?? [];
           final String imageUrl = images.isNotEmpty ? images.first : "";
-
-          final double deliveryCharges = 10.0;
-          final double tax = 5.0;
-          final double total = price + deliveryCharges + tax;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -845,10 +880,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ],
                         ),
                         const Divider(height: 24, color: Colors.grey),
-                        _priceRow('Delivery Charges', deliveryCharges),
-                        _priceRow('Tax', tax),
+
+                        //  _priceRow('Delivery Charges', deliveryCharges),
+                        // _priceRow('Tax', tax),
                         const SizedBox(height: 12),
-                        _priceRow('Total', total, isTotal: true),
+                        _priceRow('Total', price, isTotal: true),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Note: Delivery will be arranged directly between you and the seller.',
+                          style: GoogleFonts.lato(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -910,238 +955,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       );
                     })
                     .toList(),
-                const SizedBox(height: 24),
+                const SizedBox(height: 10),
 
-                // ---------------- Payment Method ----------------
-                Container(
-                  height: 48,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(
-                      width: 1,
-                      color: const Color.fromARGB(255, 209, 208, 208),
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: InkWell(
-                    onTap: isSold
-                        ? null
-                        : () {
-                            setState(() {
-                              _selectedPaymentMethod = 'card';
-                            });
-                            // TODO: Open Stripe payment card input
-                          },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        children: [
-                          Icon(
-                            size: 24,
-                            Icons.payment,
-                            color: Colors.blueAccent,
-                          ),
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: Text(
-                              "Stripe",
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                                color: Color(0xFF171A1F),
-                              ),
-                            ),
-                          ),
-                          const Icon(Icons.arrow_forward_ios, size: 16),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                RadioListTile(
-                  title: const Text('Cash on Delivery'),
-                  value: 'cod',
-                  groupValue: _selectedPaymentMethod,
-                  onChanged: isSold
-                      ? null
-                      : (value) => setState(
-                          () => _selectedPaymentMethod = value.toString(),
-                        ),
-                ),
-                const SizedBox(height: 24),
-
-                // ---------------- Place Order Button ----------------
-                // SizedBox(
-                //   width: double.infinity,
-                //   height: 50,
-                //   child: ElevatedButton(
-                //     onPressed: isSold
-                //         ? null // disable if sold
-                //         : () async {
-                //             // 1️⃣ Collect shipping address
-                //             final shippingAddress = {
-                //               'name': _addressControllers['name']!.text.trim(),
-                //               'phone': _addressControllers['phone']!.text
-                //                   .trim(),
-                //               'street': _addressControllers['street']!.text
-                //                   .trim(),
-                //               'city': _addressControllers['city']!.text.trim(),
-                //               'state': _addressControllers['state']!.text
-                //                   .trim(),
-                //               'zip': _addressControllers['zip']!.text.trim(),
-                //               'country': _addressControllers['country']!.text
-                //                   .trim(),
-                //             };
-
-                //             if (shippingAddress.values.any((e) => e.isEmpty)) {
-                //               ScaffoldMessenger.of(context).showSnackBar(
-                //                 const SnackBar(
-                //                   content: Text(
-                //                     "Please fill all shipping fields",
-                //                   ),
-                //                 ),
-                //               );
-                //               return;
-                //             }
-
-                //             try {
-                //               final orderController = OrderController();
-                //               // Determine payment status
-                //               final paymentStatus =
-                //                   _selectedPaymentMethod == 'cod'
-                //                   ? 'pending'
-                //                   : 'paid';
-
-                //               // Generate unique order ID
-                //               final orderId = FirebaseFirestore.instance
-                //                   .collection('orders')
-                //                   .doc()
-                //                   .id;
-
-                //               // Fetch auction details
-                //               final auctionDoc = await FirebaseFirestore
-                //                   .instance
-                //                   .collection('auctions')
-                //                   .doc(widget.auctionId)
-                //                   .get();
-
-                //               if (!auctionDoc.exists ||
-                //                   (auctionDoc.data()?['sold'] ?? false)) {
-                //                 ScaffoldMessenger.of(context).showSnackBar(
-                //                   const SnackBar(
-                //                     content: Text("Auction already sold"),
-                //                   ),
-                //                 );
-                //                 return;
-                //               }
-
-                //               final auctionData = auctionDoc.data()!;
-                //               final sellerId = auctionData['sellerId'];
-                //               final auctionModel = AuctionModel.fromFirestore(
-                //                 auctionData,
-                //                 widget.auctionId,
-                //               );
-
-                //               final buyerId =
-                //                   FirebaseAuth.instance.currentUser!.uid;
-                //               final Timestamp now = Timestamp.now();
-
-                //               // Place order
-                //               await orderController.placeOrder(
-                //                 orderId: orderId,
-                //                 auctionId: widget.auctionId,
-                //                 auctionType: auctionModel.type,
-                //                 buyerId: buyerId,
-                //                 sellerId: sellerId,
-                //                 price:
-                //                     auctionModel.currentBid ??
-                //                     auctionModel.startingBid,
-                //                 shippingAddress: shippingAddress,
-                //                 paymentStatus: paymentStatus,
-                //               );
-
-                //               // Update auction as sold
-                //               await FirebaseFirestore.instance
-                //                   .collection('auctions')
-                //                   .doc(widget.auctionId)
-                //                   .update({
-                //                     'sold': true,
-                //                     'buyerId': buyerId,
-                //                     'orderId': orderId,
-                //                     'status': 'sold',
-                //                     'soldAt': now,
-                //                     'paymentStatus':
-                //                         _selectedPaymentMethod == 'cod'
-                //                         ? 'pending'
-                //                         : 'paid',
-                //                     'paidAt': _selectedPaymentMethod == 'cod'
-                //                         ? null
-                //                         : now,
-                //                   });
-
-                //               // Notify seller
-                //               await FirebaseFirestore.instance
-                //                   .collection('notifications')
-                //                   .add({
-                //                     'userId': sellerId,
-                //                     'type': 'order',
-                //                     'title': 'Auction Sold',
-                //                     'message':
-                //                         'Your auction "${auctionModel.title}" has been sold for \$${(auctionModel.currentBid ?? auctionModel.startingBid).toStringAsFixed(2)}!',
-                //                     'read': false,
-                //                     'createdAt': Timestamp.now(),
-                //                   });
-
-                //               // Success snackbar
-                //               ScaffoldMessenger.of(context).showSnackBar(
-                //                 const SnackBar(
-                //                   backgroundColor: AppColors.success,
-                //                   content: Text("Order placed successfully!"),
-                //                 ),
-                //               );
-
-                //               // Navigate to Order Summary
-                //               Navigator.pushReplacement(
-                //                 context,
-                //                 MaterialPageRoute(
-                //                   builder: (_) => OrderSummaryScreen(
-                //                     orderId: orderId,
-                //                     auction: auctionModel,
-                //                     shippingAddress: shippingAddress,
-                //                     paymentMethod: _selectedPaymentMethod,
-                //                     price:
-                //                         auctionModel.currentBid ??
-                //                         auctionModel.startingBid,
-                //                   ),
-                //                 ),
-                //               );
-                //             } catch (e) {
-                //               ScaffoldMessenger.of(context).showSnackBar(
-                //                 SnackBar(
-                //                   content: Text("Error: ${e.toString()}"),
-                //                 ),
-                //               );
-                //             }
-                //           },
-                //     style: ElevatedButton.styleFrom(
-                //       backgroundColor: isSold
-                //           ? Colors.grey
-                //           : Colors.deepPurpleAccent,
-                //       shape: RoundedRectangleBorder(
-                //         borderRadius: BorderRadius.circular(12),
-                //       ),
-                //     ),
-                //     child: Text(
-                //       isSold ? 'Sold Out' : 'Place Order',
-                //       style: GoogleFonts.lato(
-                //         fontSize: 16,
-                //         fontWeight: FontWeight.bold,
-                //       ),
-                //     ),
-                //   ),
-                // ),
                 SizedBox(
                   width: double.infinity,
                   height: 50,
@@ -1290,6 +1105,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 const SnackBar(
                                   content: Text("Order placed successfully!"),
                                 ),
+                              );
+                              // Send confirmation email
+                              await sendOrderEmail(
+                                recipientEmail: shippingAddress['email']!,
+                                buyerName: shippingAddress['name']!,
+                                productName: auctionModel.title,
+                                price:
+                                    auctionModel.currentBid ??
+                                    auctionModel.startingBid,
                               );
 
                               // Navigate to Order Summary

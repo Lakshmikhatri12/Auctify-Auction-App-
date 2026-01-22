@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:auctify/Notification/notification_screen.dart';
+import 'package:auctify/controllers/auth_controller.dart';
 import 'package:auctify/controllers/user_controller.dart';
 import 'package:auctify/models/user_model.dart';
+import 'package:auctify/screens/Notification/notification_screen.dart';
 import 'package:auctify/screens/auction/my_auctions.dart';
 import 'package:auctify/screens/bid_history/my_bids.dart';
 import 'package:auctify/screens/profile/edit_profile.dart';
@@ -365,13 +366,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Icons.logout,
             title: "Logout",
             isDestructive: true,
-            onTap: () async {
-              await FirebaseAuth.instance.signOut();
-              if (mounted) {
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/login', (route) => false);
-              }
+            onTap: () {
+              AuthController().logout(context);
             },
           ),
         ],
