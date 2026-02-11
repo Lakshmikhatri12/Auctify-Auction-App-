@@ -14,6 +14,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+       // isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -46,6 +47,8 @@ flutter {
 dependencies {
   // Import the Firebase BoM
   implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+  // ✅ REQUIRED for flutter_local_notifications
+  //  coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
 
   // TODO: Add the dependencies for Firebase products you want to use

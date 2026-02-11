@@ -124,8 +124,8 @@ class AuctionModel {
   int? durationHours;
   String status;
   String location;
-  Timestamp startTime; // ✅ use Timestamp
-  Timestamp endTime; // ✅ use Timestamp
+  Timestamp startTime; //use Timestamp
+  Timestamp endTime; // use Timestamp
 
   String? winnerId;
   String? paymentStatus; // pending | paid
@@ -172,8 +172,8 @@ class AuctionModel {
     'durationHours': durationHours,
     'status': status,
     'location': location,
-    'startTime': startTime, // ✅ store as Timestamp
-    'endTime': endTime, // ✅ store as Timestamp
+    'startTime': startTime, //store as Timestamp
+    'endTime': endTime,
     'winnerId': winnerId,
     'paymentStatus': paymentStatus,
     'soldAt': soldAt,

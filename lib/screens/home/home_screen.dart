@@ -1,6 +1,5 @@
+import 'package:auctify/controllers/auth_controller.dart';
 import 'package:auctify/controllers/user_controller.dart';
-import 'package:auctify/layout/layout.dart';
-import 'package:auctify/login/firstScreen.dart';
 import 'package:auctify/models/auction_model.dart';
 import 'package:auctify/models/user_model.dart';
 import 'package:auctify/screens/auction/auction_detail.dart';
@@ -10,7 +9,6 @@ import 'package:auctify/screens/auction/place_auction.dart';
 import 'package:auctify/screens/bid_history/my_bids.dart';
 import 'package:auctify/screens/home/auction_listing.dart';
 import 'package:auctify/screens/order/order_history.dart';
-import 'package:auctify/screens/chat/inbox_screen.dart';
 import 'package:auctify/screens/profile/profile_screen.dart';
 import 'package:auctify/screens/search/search_items.dart';
 import 'package:auctify/utils/auctionCard.dart';
@@ -42,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen>
     return SafeArea(
       child: Scaffold(
         key: _scaffoldKey,
-        // backgroundColor: AppColors.scaffoldBg, // Removed to use Theme defaults
+
         drawer: Drawer(child: _drawer()),
         appBar: AppBar(
           title: Padding(
@@ -397,10 +395,7 @@ class _HomeScreenState extends State<HomeScreen>
         _textButton(
           text: "LogOut",
           onTap: () {
-            Navigator.pop(context);
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => Firstscreen()));
+            AuthController().logout(context);
           },
           icon: Icons.logout,
         ),

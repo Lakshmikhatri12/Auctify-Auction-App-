@@ -1,5 +1,4 @@
 import 'package:auctify/layout/layout.dart';
-import 'package:auctify/login/firstScreen.dart';
 import 'package:auctify/login/login_page.dart';
 import 'package:auctify/login/signup_page.dart';
 import 'package:auctify/screens/auction/auction_won.dart';
@@ -34,7 +33,6 @@ class AppRoutes {
   static const category = '/category';
 
   static final Map<String, WidgetBuilder> routes = {
-    fScreen: (_) => const Firstscreen(),
     login: (_) => const LoginPage(),
     signup: (_) => const SignUpPage(),
     layout: (_) => const Layout(),

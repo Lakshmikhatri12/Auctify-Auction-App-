@@ -958,9 +958,9 @@ import 'package:auctify/controllers/auction_controller.dart';
 import 'package:auctify/controllers/bid_controller.dart';
 import 'package:auctify/models/auction_model.dart';
 import 'package:auctify/models/bid_model.dart';
+import 'package:auctify/screens/auction/auction_bids_screen.dart';
 import 'package:auctify/screens/checkout/checkout.dart';
 import 'package:auctify/screens/chat/chat_screen.dart';
-import 'package:auctify/screens/watchlist.dart';
 import 'package:auctify/services/user_service.dart';
 import 'package:auctify/utils/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -1440,14 +1440,13 @@ class _AuctionDetailScreenState extends State<AuctionDetailScreen> {
             ),
             TextButton(
               onPressed: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => BidHistoryScreen(
-                //       auctionId: auction.auctionId,
-                //     ),
-                //   ),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        AuctionBidsScreen(auctionId: auction.auctionId),
+                  ),
+                );
               },
               child: Text(
                 "View All",

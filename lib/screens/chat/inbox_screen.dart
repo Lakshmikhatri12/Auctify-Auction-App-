@@ -41,57 +41,29 @@ class _InboxScreenState extends State<InboxScreen> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Messages",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.titleLarge?.color,
+    return Padding(
+      padding: const EdgeInsets.all(15),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardTheme.color,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
+          ],
+        ),
+        child: Text(
+          "Messages",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).textTheme.titleLarge?.color,
           ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: TextField(
-              controller: _searchController,
-              style: GoogleFonts.inter(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-              decoration: InputDecoration(
-                icon: Icon(
-                  Icons.search_rounded,
-                  color: Theme.of(context).primaryColor.withOpacity(0.5),
-                ),
-                hintText: "Search conversations...",
-                hintStyle: GoogleFonts.inter(
-                  color: Theme.of(context).hintColor,
-                  fontSize: 14,
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 14),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -154,127 +126,290 @@ class _InboxScreenState extends State<InboxScreen> {
     final otherUserName = userData['name'] ?? 'Unknown User';
     final otherUserProfile = userData['profileImageUrl'] ?? '';
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChatScreen(
-                  receiverId: otherUserId,
-                  receiverName: otherUserName,
-                ),
+    final chatRoomId = _chatController.getChatRoomId(
+      currentUserId,
+      otherUserId,
+    );
+
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('chats')
+          .doc(chatRoomId)
+          .collection('messages')
+          .where('receiverId', isEqualTo: currentUserId)
+          .where('read', isEqualTo: false)
+          .snapshots(),
+      builder: (context, unreadSnapshot) {
+        final unreadCount = unreadSnapshot.hasData
+            ? unreadSnapshot.data!.docs.length
+            : 0;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
               ),
-            );
-          },
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 28,
-                      backgroundColor: Theme.of(
-                        context,
-                      ).primaryColor.withOpacity(0.1),
-                      backgroundImage: otherUserProfile.isNotEmpty
-                          ? NetworkImage(otherUserProfile)
-                          : null,
-                      child: otherUserProfile.isEmpty
-                          ? Text(
-                              otherUserName[0].toUpperCase(),
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                                fontSize: 20,
-                              ),
-                            )
-                          : null,
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () async {
+                // Mark messages as read when opened
+                await _chatController.markMessagesRead(
+                  chatRoomId: chatRoomId,
+                  userId: currentUserId,
+                );
+
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChatScreen(
+                      receiverId: otherUserId,
+                      receiverName: otherUserName,
                     ),
-                    // Online status indicator (mocked for now)
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: Container(
-                        width: 14,
-                        height: 14,
-                        decoration: BoxDecoration(
-                          color: AppColors.success,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
+                  ),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: Theme.of(
+                            context,
+                          ).primaryColor.withOpacity(0.1),
+                          backgroundImage: otherUserProfile.isNotEmpty
+                              ? NetworkImage(otherUserProfile)
+                              : null,
+                          child: otherUserProfile.isEmpty
+                              ? Text(
+                                  otherUserName[0].toUpperCase(),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor,
+                                    fontSize: 20,
+                                  ),
+                                )
+                              : null,
                         ),
+                        if (unreadCount > 0)
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                '$unreadCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                otherUserName,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium?.color,
+                                ),
+                              ),
+                              if (lastTime != null)
+                                Text(
+                                  _formatTime(lastTime),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.titleSmall?.color,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            lastMessage,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              color: Theme.of(
+                                context,
+                              ).textTheme.titleSmall?.color,
+                              fontSize: 14,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            otherUserName,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.titleMedium?.color,
-                            ),
-                          ),
-                          if (lastTime != null)
-                            Text(
-                              _formatTime(lastTime),
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: Theme.of(
-                                  context,
-                                ).textTheme.titleSmall?.color,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        lastMessage,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(
-                          color: Theme.of(context).textTheme.titleSmall?.color,
-
-                          fontSize: 14,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
+    //   Map<String, dynamic> chatData,
+    //   Map<String, dynamic> userData,
+    //   String otherUserId,
+    // ) {
+    //   final lastMessage = chatData['lastMessage'] ?? '';
+    //   final lastTime = chatData['lastMessageTime'] as Timestamp?;
+    //   final otherUserName = userData['name'] ?? 'Unknown User';
+    //   final otherUserProfile = userData['profileImageUrl'] ?? '';
+
+    //   return Container(
+    //     margin: const EdgeInsets.only(bottom: 16),
+    //     decoration: BoxDecoration(
+    //       color: Theme.of(context).cardTheme.color,
+    //       borderRadius: BorderRadius.circular(16),
+    //       boxShadow: [
+    //         BoxShadow(
+    //           color: Colors.black.withOpacity(0.02),
+    //           blurRadius: 8,
+    //           offset: const Offset(0, 2),
+    //         ),
+    //       ],
+    //     ),
+    //     child: Material(
+    //       color: Colors.transparent,
+    //       child: InkWell(
+    //         onTap: () {
+    //           Navigator.push(
+    //             context,
+    //             MaterialPageRoute(
+    //               builder: (_) => ChatScreen(
+    //                 receiverId: otherUserId,
+    //                 receiverName: otherUserName,
+    //               ),
+    //             ),
+    //           );
+    //         },
+    //         borderRadius: BorderRadius.circular(16),
+    //         child: Padding(
+    //           padding: const EdgeInsets.all(16),
+    //           child: Row(
+    //             children: [
+    //               Stack(
+    //                 children: [
+    //                   CircleAvatar(
+    //                     radius: 28,
+    //                     backgroundColor: Theme.of(
+    //                       context,
+    //                     ).primaryColor.withOpacity(0.1),
+    //                     backgroundImage: otherUserProfile.isNotEmpty
+    //                         ? NetworkImage(otherUserProfile)
+    //                         : null,
+    //                     child: otherUserProfile.isEmpty
+    //                         ? Text(
+    //                             otherUserName[0].toUpperCase(),
+    //                             style: GoogleFonts.plusJakartaSans(
+    //                               fontWeight: FontWeight.bold,
+    //                               color: Theme.of(context).primaryColor,
+    //                               fontSize: 20,
+    //                             ),
+    //                           )
+    //                         : null,
+    //                   ),
+    //                   // Online status indicator (mocked for now)
+    //                   Positioned(
+    //                     right: 0,
+    //                     bottom: 0,
+    //                     child: Container(
+    //                       width: 14,
+    //                       height: 14,
+    //                       decoration: BoxDecoration(
+    //                         color: AppColors.success,
+    //                         shape: BoxShape.circle,
+    //                         border: Border.all(color: Colors.white, width: 2),
+    //                       ),
+    //                     ),
+    //                   ),
+    //                 ],
+    //               ),
+    //               const SizedBox(width: 16),
+    //               Expanded(
+    //                 child: Column(
+    //                   crossAxisAlignment: CrossAxisAlignment.start,
+    //                   children: [
+    //                     Row(
+    //                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //                       children: [
+    //                         Text(
+    //                           otherUserName,
+    //                           style: GoogleFonts.plusJakartaSans(
+    //                             fontWeight: FontWeight.w600,
+    //                             fontSize: 16,
+    //                             color: Theme.of(
+    //                               context,
+    //                             ).textTheme.titleMedium?.color,
+    //                           ),
+    //                         ),
+    //                         if (lastTime != null)
+    //                           Text(
+    //                             _formatTime(lastTime),
+    //                             style: GoogleFonts.inter(
+    //                               fontSize: 12,
+    //                               color: Theme.of(
+    //                                 context,
+    //                               ).textTheme.titleSmall?.color,
+    //                               fontWeight: FontWeight.w500,
+    //                             ),
+    //                           ),
+    //                       ],
+    //                     ),
+    //                     const SizedBox(height: 6),
+    //                     Text(
+    //                       lastMessage,
+    //                       maxLines: 1,
+    //                       overflow: TextOverflow.ellipsis,
+    //                       style: GoogleFonts.inter(
+    //                         color: Theme.of(context).textTheme.titleSmall?.color,
+
+    //                         fontSize: 14,
+    //                         height: 1.4,
+    //                       ),
+    //                     ),
+    //                   ],
+    //                 ),
+    //               ),
+    //             ],
+    //           ),
+    //         ),
+    //       ),
+    //     ),
+    //   );
   }
 
   Widget _buildEmptyState() {
